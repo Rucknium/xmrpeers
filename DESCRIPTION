@@ -1,0 +1,28 @@
+Package: xmrpeers
+Type: Package
+Title: Analysis of the Monero Cryptocurrency Peer-to-Peer Node Network
+Version: 0.0.1.9000
+Date: 2024-04-14
+Authors@R:
+    c(person(given = "Rucknium",
+             role = c("cre", "aut", "cph"),
+             email = "Rucknium@protonmail.com",
+             comment = c(ORCID = "0000-0001-5999-8950"))
+      )
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+Imports:
+  readr,
+  stringr,
+  pingr,
+  parallelly,
+  future,
+  future.apply
+Suggests:
+  testthat (>= 3.0.0),
+  withr
+Config/testthat/edition: 3
+RoxygenNote: 7.3.1
