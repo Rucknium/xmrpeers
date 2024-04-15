@@ -11,10 +11,10 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ## Installation
 
-You can install the development version of xmrpeers from [GitHub](https://github.com/) with:
+You can install the development version of xmrpeers from [GitHub](https://github.com/) if you have `git` and `curl` installed on your system with:
 
 ```R
-# install.packages("devtools")
-devtools::install_github("Rucknium/xmrpeers")
+install.packages("remotes")
+remotes::install_github("Rucknium/xmrpeers")
 ```
 

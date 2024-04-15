@@ -8,7 +8,8 @@ ping.peers(
   bitmonero.dir = "~/.bitmonero",
   output.file = "/monero_peer_pings.csv",
   sleep = 10,
-  ping.count = 5
+  ping.count = 5,
+  threads = NULL
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ ping.peers(
 \item{sleep}{Number of seconds to sleep between each round of collecting new peer IPs.}
 
 \item{ping.count}{Number of times to ping each peer.}
+
+\item{threads}{Override default number of threads for sending pings.}
 }
 \value{
 No return value. Executes in a loop until interrupted.

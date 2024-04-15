@@ -7,6 +7,7 @@
 #' @param output.file Name of the output file. The file will be created in `bitmonero.dir`.
 #' @param sleep Number of seconds to sleep between each round of collecting new peer IPs.
 #' @param ping.count Number of times to ping each peer.
+#' @param threads Override default number of threads for sending pings.
 #'
 #' @return No return value. Executes in a loop until interrupted.
 #' @export
@@ -15,7 +16,7 @@
 #' \dontrun{
 #' ping.peers()
 #' }
-ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_peer_pings.csv", sleep = 10, ping.count = 5) {
+ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_peer_pings.csv", sleep = 10, ping.count = 5, threads = NULL) {
 
   bitmonero.dir <- path.expand(bitmonero.dir)
   bitmonero.dir <- gsub("/+$", "", bitmonero.dir)
@@ -34,13 +35,24 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
   # > (something which is not recorded on most Unix-alike file systems).
   # > What is meant by ‘file access’ and hence the ‘last access time’ is system-dependent.
 
-
+  while (length(first.file.line) == 0) {
+    Sys.sleep(sleep)
+    first.file.line <- readr::read_lines(log.file, n_max = 1)
+    # If the log file is empty, sleep until it has at least one line.
+  }
 
   lines.already.read <- 0
 
   while (TRUE) {
 
     check.first.file.line <- readr::read_lines(log.file, n_max = 1)
+
+    if (length(check.first.file.line) == 0) {
+      lines.already.read <- 0
+      Sys.sleep(sleep)
+      next
+      # If the log file is empty, sleep until it has at least one line.
+    }
 
     if (first.file.line != check.first.file.line) {
       first.file.line <- check.first.file.line
@@ -102,12 +114,18 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
 
     if (nrow(peers) * ping.count > 5) {
 
-      n.workers <- min(c(floor(nrow(peers) * ping.count / 5), parallelly::availableCores()*4))
+      if (is.null(threads)) {
+        n.workers <- min(c(floor(nrow(peers) * ping.count / 5), parallelly::availableCores()*4))
+      }
       options(parallelly.maxWorkers.localhost = 4) # This means number of CPU cores times 4
       # Most time in thread is waiting for ping to return, so can have
       # high number of workers
 
-      future::plan(future::multisession(workers = n.workers))
+      future::plan(future::multisession, workers = n.workers)
+      # Must have this instead of
+      # future::plan(future::multisession(workers = n.workers))
+      # since the latter fails with" object 'n.workers' not found"
+      # because of a strange scoping reason.
 
       ping.data <- future.apply::future_apply(peers, MARGIN = 1, get.ping.data, future.seed = TRUE)
 
@@ -133,7 +151,6 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
     cat(base::date(), " Peers pinged: ", length(ping.data), "\n", sep = "")
 
   }
-
 
 }
 
