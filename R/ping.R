@@ -16,15 +16,25 @@
 #' \dontrun{
 #' ping.peers()
 #' }
-ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_peer_pings.csv", sleep = 10, ping.count = 5, threads = NULL) {
+ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_peer_pings.csv", sleep = 10, ping.count = 5, threads = NULL) {
 
   bitmonero.dir <- path.expand(bitmonero.dir)
   bitmonero.dir <- gsub("/+$", "", bitmonero.dir)
   # Remove trailing slash(es) if they exist
 
-  output.file <- paste0(bitmonero.dir, output.file)
+  output.file <- paste0(bitmonero.dir, "/", output.file)
 
-  log.file <- paste0(bitmonero.dir, "/bitmonero.log")
+  files.in.dir <- list.files(bitmonero.dir)
+  log.file.name <- files.in.dir[grepl("(^bitmonero[.]log$)|(^monero[.]log$)", files.in.dir, ignore.case = TRUE)]
+  if (length(log.file.name) == 0) {
+    stop("Cannot find log file in bitmonero.dir")
+  }
+
+  if (length(log.file.name) > 1) {
+    stop("Files named 'bitmonero.log' _and_ 'monero.log' exist in bitmonero.dir")
+  }
+
+  log.file <- paste0(bitmonero.dir, "/", log.file.name)
 
   first.file.line <- readr::read_lines(log.file, n_max = 1)
   # Get the first file line so we know when the log file rolls over

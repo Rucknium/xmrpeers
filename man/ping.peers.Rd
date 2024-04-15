@@ -6,7 +6,7 @@
 \usage{
 ping.peers(
   bitmonero.dir = "~/.bitmonero",
-  output.file = "/monero_peer_pings.csv",
+  output.file = "monero_peer_pings.csv",
   sleep = 10,
   ping.count = 5,
   threads = NULL
