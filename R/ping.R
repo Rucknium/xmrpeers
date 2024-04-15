@@ -12,7 +12,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' ping.peers()
+#' }
 ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_peer_pings.csv", sleep = 10, ping.count = 5) {
 
   bitmonero.dir <- path.expand(bitmonero.dir)
@@ -52,13 +54,14 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
       old.ip.ports <- ""
     }
 
-
     tail.file <- readr::read_lines(log.file, skip = lines.already.read)
+
+    n.lines.file <- length(tail.file) + lines.already.read
 
     ip.lines <- grep("Received NOTIFY_NEW_TRANSACTIONS", tail.file, fixed = TRUE)
 
     if (length(ip.lines) == 0) {
-      Sys.sleep(sleep.time)
+      Sys.sleep(sleep)
       cat(base::date(), " Peers pinged: 0\n", sep = "")
       next
     }
@@ -72,13 +75,12 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
       x
     }
 
-
     peers <- get.peer.ip.port.direction(tail.file[ip.lines])
     peers <- unique(peers)
     peers <- peers[! paste0(peers$ip, ":", peers$port) %in% old.ip.ports, , drop = FALSE]
 
     if (nrow(peers) == 0) {
-      Sys.sleep(sleep.time)
+      Sys.sleep(sleep)
       cat(base::date(), " Peers pinged: 0\n", sep = "")
       next
     }
@@ -97,7 +99,6 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
       }
       paste(ip, port, direction, paste(pings, collapse = ","), sep = ",")
     }
-
 
     if (nrow(peers) * ping.count > 5) {
 
@@ -127,7 +128,7 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "/monero_pe
 
     lines.already.read <- n.lines.file
 
-    Sys.sleep(sleep.time)
+    Sys.sleep(sleep)
 
     cat(base::date(), " Peers pinged: ", length(ping.data), "\n", sep = "")
 

@@ -27,5 +27,7 @@ No return value. Executes in a loop until interrupted.
 Ping peer nodes for latency measurement
 }
 \examples{
+\dontrun{
 ping.peers()
+}
 }
