@@ -125,7 +125,7 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_pee
     if (nrow(peers) * ping.count > 5) {
 
       if (is.null(threads)) {
-        n.workers <- min(c(floor(nrow(peers) * ping.count / 5), parallelly::availableCores()*4, 100)
+        n.workers <- min(c(floor(nrow(peers) * ping.count / 5), parallelly::availableCores()*4, 100))
       } else {
         n.workers <- threads
       }
