@@ -89,16 +89,26 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_pee
     }
 
     get.peer.ip.port.direction <- function(x) {
-      x <- stringr::str_extract(x, "\\[[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+\\s[INCOUT]{3}\\]")
-      x <- stringr::str_extract(x, "[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}:[0-9]+\\s[INCOUT]{3}")
-      x <- strsplit(x, "(:)|(\\s)")
-      x <- as.data.frame(matrix(unlist(x), ncol = 3, byrow = TRUE), stringsAsFactors = FALSE)
+      x <- stringr::str_extract(x,
+        "\t\\[+([^\\[\\]]+)\\]*:([0-9]+) ([INCOUT]{3})\\] Received NOTIFY_NEW_TRANSACTIONS",
+        group = c(1, 2, 3))
+      if (!is.matrix(x)) {
+        x <- matrix(x, ncol = 3, byrow = TRUE)
+        # stringr::str_extract() creates an atomic vector instaed of a matrix
+        # if the x has only one element
+      }
+      x <- as.data.frame(x)
       colnames(x) <- c("ip", "port", "direction")
       x
     }
 
     peers <- get.peer.ip.port.direction(tail.file[ip.lines])
     peers <- unique(peers)
+    missed.parsing <- (! complete.cases(peers))
+    if (any(missed.parsing)) {
+      cat("Unable to parse ", sum(missed.parsing), " IPs of peers\n", sep = "")
+    }
+    peers <- peers[! missed.parsing, , drop = FALSE] # Drops any NAs in case the parsing doesn't work
     peers <- peers[! paste0(peers$ip, ":", peers$port) %in% old.ip.ports, , drop = FALSE]
 
     if (nrow(peers) == 0) {
@@ -109,17 +119,49 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_pee
 
     get.ping.data <- function(x) {
       ip <- x[[1]]
+      ip.type <- IP::ip(ip)@.Data
+
+      if (is.na(ip.type) || (! ip.type %in% c(4, 6))) {
+        cat("Could not determine ipv4/ipv6 type of peer\n")
+        return(paste("UNPARSEABLE", "UNPARSEABLE", "UNPARSEABLE",
+          paste(rep(NA, ping.count), collapse = ","), sep = ","))
+      }
+
       port <- x[[2]]
       direction <- x[[3]]
       if (paste0(ip, ":", port) %in% old.ip.ports) {
         return("")
       }
-      pings <- pingr::ping_port(ip, port = port, count = ping.count)
-      if (all(is.na(pings))) {
-        # This may happen if it is an incoming connection and the peer's port is closed
-        pings <- pingr::ping(ip, count = ping.count)
+
+      if (ip.type == 4) {
+        pings <- pingr::ping_port(ip, port = port, count = ping.count)
+        if (all(is.na(pings))) {
+          # This may happen if it is an incoming connection and the peer's port is closed
+          pings <- pingr::ping(ip, count = ping.count)
+        }
       }
+
+      if (ip.type == 6) {
+        # pingr::ping() doesn't seem to work with ipv6, so switch to
+        # the pingers package
+        # pingers::ping_capture() output format makes it difficult to get the
+        # ping latency for each ping, so we will just loop ping.count times
+        ping.ipv6 <- function() {
+          y <- pingers::ping_capture(paste0(ip, ":", port), count = 1)$ping_min
+          if (is.na(y)) {
+            # This may happen if it is an incoming connection and the peer's port is closed
+            y <- pingers::ping_capture(ip, count = 1)$ping_min
+          }
+          y
+        }
+        pings <- replicate(ping.count, ping.ipv6())
+      }
+
       paste(ip, port, direction, paste(pings, collapse = ","), sep = ",")
+    }
+
+    get.ping.data.errors.handled <- function(x) {
+      tryCatch(get.ping.data(x), error = function(e) {""})
     }
 
     if (nrow(peers) * ping.count > 5) {
@@ -139,13 +181,13 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_pee
       # since the latter fails with" object 'n.workers' not found"
       # because of a strange scoping reason.
 
-      ping.data <- future.apply::future_apply(peers, MARGIN = 1, get.ping.data, future.seed = TRUE)
+      ping.data <- future.apply::future_apply(peers, MARGIN = 1, get.ping.data.errors.handled, future.seed = TRUE)
 
       future::plan(future::sequential)
       # Shut down workers
 
     } else {
-      ping.data <- apply(peers, MARGIN = 1, get.ping.data)
+      ping.data <- apply(peers, MARGIN = 1, get.ping.data.errors.handled)
     }
 
     ping.data <- unname(ping.data)
