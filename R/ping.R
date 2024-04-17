@@ -18,6 +18,10 @@
 #' }
 ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_peer_pings.csv", sleep = 10, ping.count = 5, threads = NULL) {
 
+  Sys.setenv(VROOM_CONNECTION_SIZE = formatC(131072 * 100, format = "fg"))
+  # Fixes occasional issues with https://github.com/tidyverse/vroom/issues/364
+  # formatC() is used since VROOM_CONNECTION_SIZE cannot interpret scientific notation
+
   bitmonero.dir <- path.expand(bitmonero.dir)
   bitmonero.dir <- gsub("/+$", "", bitmonero.dir)
   # Remove trailing slash(es) if they exist
