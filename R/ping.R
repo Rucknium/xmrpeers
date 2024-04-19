@@ -1,6 +1,25 @@
 
 
 
+
+
+# This function is not exported
+get.peer.ip.port.direction <- function(x, notification) {
+  x <- stringr::str_extract(x,
+    paste0("\t\\[+([^\\[\\]]+)\\]*:([0-9]+) ([INCOUT]{3})\\] ", notification),
+    group = 1:3)
+  if (!is.matrix(x)) {
+    x <- matrix(x, ncol = 3, byrow = TRUE)
+    # stringr::str_extract() creates an atomic vector instead of a matrix
+    # if the x has only one element
+  }
+  x <- as.data.frame(x)
+  colnames(x) <- c("ip", "port", "direction")
+  x
+}
+
+
+
 #' Ping peer nodes for latency measurement
 #'
 #' @param bitmonero.dir .bitmonero directory where the monero.log file is.
@@ -18,7 +37,7 @@
 #' }
 ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_peer_pings.csv", sleep = 10, ping.count = 5, threads = NULL) {
 
-  Sys.setenv(VROOM_CONNECTION_SIZE = formatC(131072 * 100, format = "fg"))
+  Sys.setenv(VROOM_CONNECTION_SIZE = formatC(131072 * 10000, format = "fg"))
   # Fixes occasional issues with https://github.com/tidyverse/vroom/issues/364
   # formatC() is used since VROOM_CONNECTION_SIZE cannot interpret scientific notation
 
@@ -92,21 +111,7 @@ ping.peers <- function(bitmonero.dir = "~/.bitmonero", output.file = "monero_pee
       next
     }
 
-    get.peer.ip.port.direction <- function(x) {
-      x <- stringr::str_extract(x,
-        "\t\\[+([^\\[\\]]+)\\]*:([0-9]+) ([INCOUT]{3})\\] Received NOTIFY_NEW_TRANSACTIONS",
-        group = c(1, 2, 3))
-      if (!is.matrix(x)) {
-        x <- matrix(x, ncol = 3, byrow = TRUE)
-        # stringr::str_extract() creates an atomic vector instaed of a matrix
-        # if the x has only one element
-      }
-      x <- as.data.frame(x)
-      colnames(x) <- c("ip", "port", "direction")
-      x
-    }
-
-    peers <- get.peer.ip.port.direction(tail.file[ip.lines])
+    peers <- get.peer.ip.port.direction(tail.file[ip.lines], "Received NOTIFY_NEW_TRANSACTIONS")
     peers <- unique(peers)
     missed.parsing <- (! complete.cases(peers))
     if (any(missed.parsing)) {

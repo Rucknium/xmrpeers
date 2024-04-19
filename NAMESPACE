@@ -1,3 +1,5 @@
-exportPattern("^[[:alpha:]]+")
+# exportPattern("^[[:alpha:]]+")
+export("ping.peers")
+export("get.p2p.log")
 importFrom("utils", "read.csv")
 importFrom("stats", "complete.cases")
