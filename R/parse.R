@@ -184,6 +184,202 @@ get.p2p.log <- function(bitmonero.dir = "~/.bitmonero", output.file = NULL) {
 
 
 
+
+
+
+
+
+
+
+#' Extract and compress selected log lines
+#'
+#' @description
+#' With default arguments, this function accomplishes the same thing as this
+#' Linux shell call:
+#' ```
+#' zgrep -a 'net.p2p.msg' bitmonero.log* > extracted-xmr-log; xz extracted-xmr-log;
+#' ```
+#'
+#'
+#' @param bitmonero.dir Directory location of the log files
+#' @param output.file Name of the file that will be created. ".tar.xz" will
+#' be appended to this name
+#' @param log.filter Regular expression that selects log lines.
+#' @param rm.uncompressed.file Remove the uncompressed version of the
+#' extracted log file after compression? Does not affect the original log files.
+#'
+#' @return
+#' NULL (invisible)
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' compress.log()
+#' }
+compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bitmonero"),
+  output.file = "extracted-xmr-log", log.filter = "net.p2p.msg", rm.uncompressed.file = TRUE) {
+
+  # https://monero.stackexchange.com/questions/1146/where-is-the-blockchain-saved-in-windows
+  if (identical(bitmonero.dir, c("~/.bitmonero", "C:\\ProgramData\\bitmonero"))) {
+    if ( ! (.Platform$OS.type %in% c("unix", "windows"))) {
+      stop("Operating system is neither Unix nor Windows. Please manually specify Monero log directory with bitmonero.dir argument.")
+    }
+    if ( .Platform$OS.type == "unix" ) {
+      bitmonero.dir <- "~/.bitmonero"
+    }
+    if ( .Platform$OS.type == "windows" ) {
+      bitmonero.dir <- "C:\\ProgramData\\bitmonero"
+    }
+  }
+
+
+  if (file.exists(output.file)) {
+    stop(paste0("Uncompressed ", output.file, " file already exists. Delete or move file and retry."))
+  }
+
+  if (rm.uncompressed.file) {
+    on.exit(unlink(output.file))
+  }
+
+  bitmonero.dir <- path.expand(bitmonero.dir)
+  bitmonero.dir <- gsub("/+$", "", bitmonero.dir)
+  # Remove trailing slash(es) if they exist
+
+  files.in.dir <- list.files(bitmonero.dir)
+  bitmonero.files <- files.in.dir[grepl("(^bitmonero[.]log)|(^monero[.]log)", files.in.dir, ignore.case = TRUE)]
+
+  if (length(bitmonero.files) == 0) {
+    stop(paste0("No Monero log files (bitmonero.log* or monero.log*) found in ", bitmonero.dir))
+  }
+
+  bitmonero.files.tar <- bitmonero.files[grepl("[.]tar[.]gz$", bitmonero.files)]
+  bitmonero.files <- bitmonero.files[!grepl("[.]tar[.]gz$", bitmonero.files)]
+  cat("Processing ", length(bitmonero.files), " uncompressed log file(s) and ",
+    length(bitmonero.files.tar), " compressed archive(s).\n", sep = "")
+
+  for (tar.file in bitmonero.files.tar) {
+    # This loop will be skipped if there are zero tar files
+    gz.files <- untar(paste0(bitmonero.dir, "/", tar.file), list = TRUE)
+    cat("Processing ", length(gz.files), " log files in ", tar.file, "...\n", sep = "")
+    for (gz.file in gz.files) {
+      cat("Processing log file ", gz.file, " from ", tar.file, "...\n", sep = "")
+      gz.connection <- archive::archive_read(paste0(bitmonero.dir, "/", tar.file), file = gz.file)
+      gz.output <- readLines(gz.connection, skipNul = TRUE)
+      # Cannot use data.table::fread() with a connection: https://github.com/Rdatatable/data.table/issues/561
+      data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
+        file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+      rm(gz.output)
+      close(gz.connection)
+      # Close connection
+    }
+  }
+  gc()
+
+  for (bitmonero.file in bitmonero.files) {
+    cat("Processing log file ", bitmonero.file, "...\n", sep = "")
+    txt.output <- data.table::fread(paste0(bitmonero.dir, "/", bitmonero.file), colClasses = "character",
+      header = FALSE, sep = NULL, blank.lines.skip = FALSE, showProgress = FALSE)[[1]]
+    data.table::fwrite(list(paste0(gz.file, ":", txt.output[grep(log.filter, txt.output)])),
+      file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+    rm(txt.output)
+  }
+  gc()
+  output.file.size <- file.size(output.file)
+
+  cat("Compressing ", output.file, " (", round(output.file.size / 10^9, 2),
+    " GB)...\n", sep = "")
+  tic <- Sys.time()
+
+  xzcompress(output.file, overwrite = TRUE, remove = rm.uncompressed.file, BFR.SIZE = 1e+08)
+  # archive::archive_write_files() is multi-threaded, but it requires the .xz
+  # to be put in an archive that can save file metadata like creation time and
+  # user account
+  time.diff <- Sys.time() - tic
+  cat("Compression from ", round(output.file.size / 10^9, 2), " GB to ",
+    round(file.size(paste0(output.file, ".xz")) / 10^6, 2), " MB completed in ",
+    round(time.diff, 2), " ", attr(time.diff, "units"),
+    ". File is ", output.file, ".xz in ", getwd(), "\n", sep = "")
+
+  return(invisible(NULL))
+}
+
+
+
+
+
+
+
+# xzcompress function copied from micropan R package. Modified this line:
+# nbytes <- 0L
+# to
+# nbytes <- 0
+# and added this for a progress indicator:
+# cat( formatC(round(nbytes / 10^9, 1), digits = 1, flag = "#"), " GB compressed...\r", sep = "")
+# GPL-2 license, Copyright 2022 Lars Snipen and Kristian Hovde Liland
+
+xzcompress <- function (filename, destname = sprintf("%s.xz", filename), temporary = FALSE,
+  skip = FALSE, overwrite = FALSE, remove = TRUE, BFR.SIZE = 1e+07,
+  compression = 6, ...)
+{
+  if (!file.exists(filename)) {
+    stop("No such file: ", filename)
+  }
+  if (temporary) {
+    destname <- file.path(tempdir(), basename(destname))
+  }
+  attr(destname, "temporary") <- temporary
+  if (filename == destname)
+    stop(sprintf("Argument 'filename' and 'destname' are identical: %s",
+      filename))
+  if (file.exists(destname)) {
+    if (skip) {
+      return(destname)
+    }
+    else if (!overwrite) {
+      stop(sprintf("File already exists: %s", destname))
+    }
+  }
+  destpath <- dirname(destname)
+  if (!file.info(destpath)$isdir)
+    dir.create(destpath)
+  inn <- file(filename, open = "rb")
+  on.exit(if (!is.null(inn)) close(inn))
+  outComplete <- FALSE
+  out <- xzfile(destname, open = "wb", compression = compression,
+    ...)
+  on.exit({
+    close(out)
+    if (!outComplete) {
+      file.remove(destname)
+    }
+  }, add = TRUE)
+  nbytes <- 0 # Make nbytes a numeric (float), not integer, to avoid overflow
+  repeat {
+    bfr <- readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE)
+    n <- length(bfr)
+    if (n == 0L)
+      break
+    nbytes <- nbytes + n
+    writeBin(bfr, con = out, size = 1L)
+    bfr <- NULL
+    cat( formatC(round(nbytes / 10^9, 1), digits = 1, flag = "#"), " GB compressed...\r", sep = "")
+    # Added this. \r is to delete previous line.
+  }
+  outComplete <- TRUE
+  if (remove) {
+    close(inn)
+    inn <- NULL
+    file.remove(filename)
+  }
+  attr(destname, "nbrOfBytes") <- nbytes
+  invisible(destname)
+}
+
+
+
+
+
+
 # Suggested by
 # https://r-pkgs.org/dependencies-in-practice.html#how-to-not-use-a-package-in-imports
 # We need the R.utils package to enable reading compressed log file with

@@ -15,7 +15,7 @@ ping.peers(
 \arguments{
 \item{bitmonero.dir}{.bitmonero directory where the monero.log file is.}
 
-\item{output.file}{Name of the output file. The file will be created in `bitmonero.dir`.}
+\item{output.file}{Name of the output file. The file will be created in \code{bitmonero.dir}.}
 
 \item{sleep}{Number of seconds to sleep between each round of collecting new peer IPs.}
 
