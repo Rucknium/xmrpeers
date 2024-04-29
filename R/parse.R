@@ -263,14 +263,25 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
     cat("Processing ", length(gz.files), " log files in ", tar.file, "...\n", sep = "")
     for (gz.file in gz.files) {
       cat("Processing log file ", gz.file, " from ", tar.file, "...\n", sep = "")
-      gz.connection <- archive::archive_read(paste0(bitmonero.dir, "/", tar.file), file = gz.file)
-      gz.output <- readLines(gz.connection, skipNul = TRUE)
-      # Cannot use data.table::fread() with a connection: https://github.com/Rdatatable/data.table/issues/561
-      data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
-        file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
-      rm(gz.output)
-      close(gz.connection)
-      # Close connection
+      if ("archive" %in% installed.packages()[, 1]) {
+        gz.connection <- archive::archive_read(paste0(bitmonero.dir, "/", tar.file), file = gz.file)
+        gz.output <- readLines(gz.connection, skipNul = TRUE)
+        # Cannot use data.table::fread() with a connection: https://github.com/Rdatatable/data.table/issues/561
+        data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
+          file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+        rm(gz.output)
+        close(gz.connection)
+        # Close connection
+      } else {
+        tmp <- tempdir()
+        untar(paste0(bitmonero.dir, "/", tar.file), files = gz.file, exdir = tmp)
+        gz.output <- data.table::fread(paste0(bitmonero.dir, "/", gz.file), colClasses = "character",
+          header = FALSE, sep = NULL, blank.lines.skip = FALSE, showProgress = FALSE)[[1]]
+        data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
+          file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+        rm(gz.output)
+        unlink(paste0(tmp, "/", gz.file))
+      }
     }
   }
   gc()
@@ -279,7 +290,7 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
     cat("Processing log file ", bitmonero.file, "...\n", sep = "")
     txt.output <- data.table::fread(paste0(bitmonero.dir, "/", bitmonero.file), colClasses = "character",
       header = FALSE, sep = NULL, blank.lines.skip = FALSE, showProgress = FALSE)[[1]]
-    data.table::fwrite(list(paste0(gz.file, ":", txt.output[grep(log.filter, txt.output)])),
+    data.table::fwrite(list(paste0(bitmonero.file, ":", txt.output[grep(log.filter, txt.output)])),
       file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
     rm(txt.output)
   }
@@ -362,7 +373,8 @@ xzcompress <- function (filename, destname = sprintf("%s.xz", filename), tempora
     nbytes <- nbytes + n
     writeBin(bfr, con = out, size = 1L)
     bfr <- NULL
-    cat( formatC(round(nbytes / 10^9, 1), digits = 1, flag = "#"), " GB compressed...\r", sep = "")
+    cat( formatC(round(nbytes / 10^9, 1), width = 2, digits = 1, flag = "#",
+      format = "f"), " GB compressed...\r", sep = "")
     # Added this. \r is to delete previous line.
   }
   outComplete <- TRUE
