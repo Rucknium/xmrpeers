@@ -268,7 +268,7 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
         gz.output <- readLines(gz.connection, skipNul = TRUE)
         # Cannot use data.table::fread() with a connection: https://github.com/Rdatatable/data.table/issues/561
         data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
-          file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+          file = output.file, append = TRUE, quote = FALSE, col.name = FALSE, showProgress = FALSE)
         rm(gz.output)
         close(gz.connection)
         # Close connection
@@ -278,7 +278,7 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
         gz.output <- data.table::fread(paste0(bitmonero.dir, "/", gz.file), colClasses = "character",
           header = FALSE, sep = NULL, blank.lines.skip = FALSE, showProgress = FALSE)[[1]]
         data.table::fwrite(list(paste0(gz.file, ":", gz.output[grep(log.filter, gz.output)])),
-          file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+          file = output.file, append = TRUE, quote = FALSE, col.name = FALSE, showProgress = FALSE)
         rm(gz.output)
         unlink(paste0(tmp, "/", gz.file))
       }
@@ -291,7 +291,7 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
     txt.output <- data.table::fread(paste0(bitmonero.dir, "/", bitmonero.file), colClasses = "character",
       header = FALSE, sep = NULL, blank.lines.skip = FALSE, showProgress = FALSE)[[1]]
     data.table::fwrite(list(paste0(bitmonero.file, ":", txt.output[grep(log.filter, txt.output)])),
-      file = output.file, append = TRUE, col.name = FALSE, showProgress = FALSE)
+      file = output.file, append = TRUE, quote = FALSE, col.name = FALSE, showProgress = FALSE)
     rm(txt.output)
   }
   gc()
@@ -309,7 +309,7 @@ compress.log <- function(bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bit
   cat("Compression from ", round(output.file.size / 10^9, 2), " GB to ",
     round(file.size(paste0(output.file, ".xz")) / 10^6, 2), " MB completed in ",
     round(time.diff, 2), " ", attr(time.diff, "units"),
-    ". File is ", output.file, ".xz in ", getwd(), "\n", sep = "")
+    ".\nFile is ", output.file, ".xz in ", getwd(), "\n", sep = "")
 
   return(invisible(NULL))
 }
