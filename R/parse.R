@@ -197,7 +197,9 @@ get.p2p.log <- function(bitmonero.dir = "~/.bitmonero", output.file = NULL) {
 #' With default arguments, this function accomplishes the same thing as this
 #' Linux shell call:
 #' ```
-#' zgrep -a 'net.p2p.msg' bitmonero.log* > extracted-xmr-log; xz extracted-xmr-log;
+#' grep -I "net.p2p.msg" bitmonero.log* > extracted-xmr-log
+#' for file in bitmonero.log*.tar.gz; do tar xf "$file" --to-command 'egrep -Ha --label="$TAR_FILENAME" "net.p2p.msg" || true' >> extracted-xmr-log; done
+#' xz extracted-xmr-log
 #' ```
 #'
 #'
