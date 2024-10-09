@@ -138,9 +138,8 @@ get.p2p.log <- function(bitmonero.dir = "~/.bitmonero", output.file = NULL) {
     # This fixes the rare case that the number of txs received in a message
     # is zero, or if all the txs in a message did not pass validation
     # so none of them were printed to the log.
-    how.many <- rle.result$lengths[i] - 1
-    rle.result$lengths <- append(rle.result$lengths, rep(0, how.many), after = i)
-    rle.result$values <- append(rle.result$values, rep(TRUE, how.many), after = i)
+    rle.result$lengths <- append(rle.result$lengths, 0, after = i)
+    rle.result$values <- append(rle.result$values, TRUE, after = i)
   }
 
   cat(base::date(), " ", sum(rle.result$lengths[rle.result$values] != number.of.txs),
@@ -161,7 +160,8 @@ get.p2p.log <- function(bitmonero.dir = "~/.bitmonero", output.file = NULL) {
     tx.hash = get.tx.hash(monero.log),
     stringsAsFactors = FALSE)
 
-  stopifnot( all(diff(tx.data$gossip.msg.id)[is.na(tx.data$tx.hash)[-1]] == 1) )
+  stopifnot( all(diff(tx.data[tx.data$number.of.txs.corrected > 0, "gossip.msg.id"])[is.na(tx.data[tx.data$number.of.txs.corrected > 0, "tx.hash"])[-1]] == 1) )
+  # TODO: Make this syntax clearer
   # Checks to make sure each transmission of txs from each node has its
   # own gossip.msg.id, i.e. that there is no misalignment in the data.frame
 
