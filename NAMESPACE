@@ -2,5 +2,6 @@
 export("ping.peers")
 export("get.p2p.log")
 export("compress.log")
+export("newborn.nodes")
 importFrom("utils", "read.csv", "untar", "installed.packages")
-importFrom("stats", "complete.cases")
+importFrom("stats", "complete.cases", "quantile")

@@ -25,7 +25,9 @@ Imports:
   parallelly,
   future,
   future.apply,
-  qs
+  qs,
+  RCurl,
+  RJSONIO
 Suggests:
   archive,
   testthat (>= 3.0.0),
