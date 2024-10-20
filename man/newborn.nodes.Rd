@@ -13,7 +13,7 @@ newborn.nodes(
 )
 }
 \arguments{
-\item{unrestricted.rpc.url}{URL and port of the monerod unrestricted RPC.
+\item{unrestricted.rpc.url}{URL and port of the \code{monerod} unrestricted RPC.
 Default is \verb{http://127.0.0.1:18081}}
 
 \item{poll.time}{How often, in seconds, to check for a newborn node

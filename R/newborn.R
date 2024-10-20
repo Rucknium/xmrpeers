@@ -11,7 +11,7 @@
 #' recorded so far. Each peer will only be printed once during a specific run of
 #' `newborn.nodes`, even if the node disconnects and reconnects later.
 #'
-#' @param unrestricted.rpc.url URL and port of the monerod unrestricted RPC.
+#' @param unrestricted.rpc.url URL and port of the `monerod` unrestricted RPC.
 #' Default is `http://127.0.0.1:18081`
 #' @param poll.time How often, in seconds, to check for a newborn node
 #' connection. Default is 30 seconds.
