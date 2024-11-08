@@ -11,6 +11,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 ## Installation
 
+Install R. Linux users should install the `r-base` and `r-base-dev` system packages.
+
 You can install the development version of xmrpeers from [GitHub](https://github.com/) if you have `git` and `curl` installed on your system with:
 
 ```R
