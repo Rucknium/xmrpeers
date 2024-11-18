@@ -1,8 +1,6 @@
 
 
 
-
-
 #' Initialize txpool archive database
 #'
 #' @description Initializes a database file to record the arrival time of
@@ -29,6 +27,7 @@ txpool.init <- function(db.file = "xmr-txpool-archive.db") {
   }
 
   con <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+  on.exit(DBI::dbDisconnect(con))
   DBI::dbExecute(con, "PRAGMA journal_mode=WAL;")
   # txpool.export() can read while txpool.collect() writes
   # https://stackoverflow.com/questions/15143871/simplest-way-to-retry-sqlite-query-if-db-is-locked
@@ -39,6 +38,7 @@ id_hash TEXT,
 fee TEXT,
 weight TEXT,
 receive_time TEXT,
+key_images TEXT,
 unique(id_hash)
 )")
   # unique(id_hash) prevents the same txs being inserted more than once
@@ -182,7 +182,13 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
   # txpool.export() can read while txpool.collect() writes
   # https://stackoverflow.com/questions/15143871/simplest-way-to-retry-sqlite-query-if-db-is-locked
 
-  on.exit(message(paste0("txpool data collection stopped at ", base::date())))
+  try(DBI::dbExecute(con, "ALTER TABLE txs ADD COLUMN key_images TEXT"), silent = TRUE)
+  # This is in case there is an older version of the database without key_images
+
+  on.exit({
+    DBI::dbDisconnect(con)
+    message(paste0("txpool data collection stopped at ", base::date()))
+  })
 
   while (TRUE) {
 
@@ -200,17 +206,23 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
         txs <- vector(mode = "list", length = length(tx.pool))
 
         for (i in seq_along(tx.pool)) {
+
+          tx_json <- RJSONIO::fromJSON(tx.pool[[i]]$tx_json)
+          key.images <- sapply(tx_json$vin, FUN = function(x) {x$key$k_image})
+          key.images <- paste0(key.images, collapse = ";")
+
           txs[[i]] <- data.table::data.table(
             id_hash = tx.pool[[i]]$id_hash,
             fee = tx.pool[[i]]$fee,
             weight = tx.pool[[i]]$weight,
-            receive_time = tx.pool[[i]]$receive_time)
+            receive_time = tx.pool[[i]]$receive_time,
+            key_images = key.images)
         }
 
         txs <- data.table::rbindlist(txs)
 
         tx.statement <- DBI::dbSendQuery(con,
-          "INSERT OR IGNORE INTO txs VALUES (:id_hash,:fee,:weight,:receive_time)")
+          "INSERT OR IGNORE INTO txs VALUES (:id_hash,:fee,:weight,:receive_time,:key_images)")
         # "IGNORE" prevents the same txs from being inserted more than once
         DBI::dbBind(tx.statement, params = txs)
         DBI::dbClearResult(tx.statement)
@@ -287,6 +299,7 @@ txpool.export <- function(db.file = "xmr-txpool-archive.db", csv.filepath = "",
   end.date.filename <- ifelse(end.date == "2035-01-01", "", paste0("end-" , end.date, "-"))
 
   con <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+  on.exit(DBI::dbDisconnect(con))
   DBI::dbExecute(con, "PRAGMA journal_mode=WAL;")
   # txpool.export() can read while txpool.collect() writes
   # https://stackoverflow.com/questions/15143871/simplest-way-to-retry-sqlite-query-if-db-is-locked

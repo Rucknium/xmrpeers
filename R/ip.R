@@ -51,7 +51,7 @@ in.malicious.ips <- function(x, malicious.ips) {
 #'
 #' @examples
 #' \dontrun{
-#' suspected.malicious.ips <-readLines(
+#' suspected.malicious.ips <- readLines(
 #'   "https://raw.githubusercontent.com/Boog900/monero-ban-list/refs/heads/main/ban_list.txt")
 #' peers.ip.collect(malicious.ips = suspected.malicious.ips)
 #' }
