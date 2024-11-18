@@ -37,3 +37,4 @@ Suggests:
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
+URL: https://rucknium.github.io/xmrpeers/
