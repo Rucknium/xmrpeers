@@ -1,0 +1,16 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/compress.log.html</loc></url>
+<url><loc>/reference/get.p2p.log.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/newborn.nodes.html</loc></url>
+<url><loc>/reference/peers.ip.collect.html</loc></url>
+<url><loc>/reference/ping.peers.html</loc></url>
+<url><loc>/reference/txpool.collect.html</loc></url>
+<url><loc>/reference/txpool.export.html</loc></url>
+<url><loc>/reference/txpool.init.html</loc></url>
+</urlset>
+
