@@ -21,7 +21,7 @@ used to compute top subnet information.}
 \item{unrestricted.rpc.url}{URL and port of the \code{monerod} unrestricted RPC.
 Default is \verb{http://127.0.0.1:18081}}
 
-\item{malicious.ips}{A character vector of IP addreses that are suspected
+\item{malicious.ips}{A character vector of IP addresses that are suspected
 to be malicious.}
 
 \item{top.subnet.mask}{Numeric value. The IP address subnet mask to print
@@ -30,17 +30,17 @@ summary information about.}
 \item{n.top.subnets}{Number of subnets to print summary information about.}
 
 \item{poll.time}{How often, in seconds, to collect data from the local
-monero node. Default is 30 seconds.}
+Monero node. Default is 30 seconds.}
 }
 \value{
 NULL (invisible)
 }
 \description{
-Collects IP addreses of peers that the local node has
-established outbound connections to. The time and set of IP addreses are
-saved to a CSV file. These IP addreses are checked against an optional
+Collects IP addresses of peers that the local node has
+established outbound connections to. The time and set of IP addresses are
+saved to a CSV file. These IP addresses are checked against an optional
 set of suspected malicious IP addresses. Information about the share of
-outbound connections to suspected maclicious IP addreses is printed.
+outbound connections to suspected malicious IP addresses is printed.
 IP addresses are grouped by subnet and information is printed to check for
 possible "subnet saturation" by malicious entities. This function is an
 infinite loop. \code{ctrl + c} to interrupt the function.

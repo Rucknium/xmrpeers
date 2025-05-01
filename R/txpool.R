@@ -163,7 +163,7 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
 
   tx.pool <- c()
 
-  message("Checking that Monero node has acceptable configuration Please wait for confirmation...")
+  message("Checking that Monero node has acceptable configuration. Please wait for confirmation...")
 
   # Check that node is responding
   while(length(tx.pool) == 0) {
