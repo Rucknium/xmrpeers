@@ -29,7 +29,8 @@ Imports:
   RCurl,
   RJSONIO,
   RSQLite,
-  DBI
+  DBI,
+  discretefit
 Suggests:
   archive,
   testthat (>= 3.0.0),
