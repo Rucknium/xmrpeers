@@ -455,6 +455,14 @@ peer.selection.test <- function(
     setDT(new.connections)
     new.connections[is.na(Freq), Freq := 0]
 
+    tests <- list()
+
+    for (i in seq_along(stat.tests)) {
+      tests[[ names(stat.tests)[i] ]] <-
+        stat.tests[[i]](new.connections$Freq, new.connections$probability)
+      print(tests[[ names(stat.tests)[i] ]])
+    }
+
     results.gray_list <- list(tests = tests, selection.frequency = new.connections)
 
     # TODO: Fix "blank" IP addresses
