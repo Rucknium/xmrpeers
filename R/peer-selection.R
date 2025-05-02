@@ -139,7 +139,7 @@ peer.selection.collect <- function(
       draws.from.gray_list <- grep("gray list peer", log.output)
 
       total.draws.from.white_list <- total.draws.from.white_list + length(draws.from.white_list)
-      total.draws.from.gray_list <- total.draws.from.white_list + length(draws.from.gray_list)
+      total.draws.from.gray_list <- total.draws.from.gray_list + length(draws.from.gray_list)
 
       if (length(draws.from.white_list) > 0) {
 
@@ -156,7 +156,7 @@ peer.selection.collect <- function(
 
         if (verbose == 2) {
           message(paste0("white_list draw: ", new.connections, " Position(s) in white_list: ",
-            paste0(which(new.connections %in% gsub("::ffff:", "", hosts, fixed = TRUE)),
+            paste0(which( gsub("::ffff:", "", hosts, fixed = TRUE) %in% new.connections ),
               collapse = "-")), collapse = "\n")
         }
 
@@ -183,8 +183,8 @@ peer.selection.collect <- function(
           "[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}")
 
         if (verbose == 2) {
-          message(paste0("gray_list draw: ", new.connections, " Position(s) in white_list: ",
-            paste0(which(new.connections %in% gsub("::ffff:", "", hosts, fixed = TRUE)),
+          message(paste0("gray_list draw: ", new.connections, " Position(s) in gray_list: ",
+            paste0(which( gsub("::ffff:", "", hosts, fixed = TRUE) %in% new.connections ),
               collapse = "-")), collapse = "\n")
         }
 
