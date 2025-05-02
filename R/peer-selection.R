@@ -297,7 +297,7 @@ peer.selection.test <- function(
 
   stopifnot(length(do.list) %between% 1:2)
 
-  if (length(names(stat.tests)) == 1 ||
+  if (length(names(stat.tests)) == 0 ||
       any(nchar(names(stat.tests)) == 0)) {
     stop("stat.tests list elements do not all have names.")
   }
