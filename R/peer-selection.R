@@ -138,8 +138,8 @@ peer.selection.collect <- function(
       draws.from.white_list <- grep("white list peer", log.output)
       draws.from.gray_list <- grep("gray list peer", log.output)
 
-      total.draws.from.white_list <- draws.from.white_list + length(draws.from.white_list)
-      total.draws.from.gray_list <- draws.from.gray_list + length(draws.from.gray_list)
+      total.draws.from.white_list <- total.draws.from.white_list + length(draws.from.white_list)
+      total.draws.from.gray_list <- total.draws.from.white_list + length(draws.from.gray_list)
 
       if (length(draws.from.white_list) > 0) {
 
@@ -320,7 +320,7 @@ peer.selection.test <- function(
       col.names = c("new.connection", "time",
         paste0("peer.", formatC(seq_len(white_list.max.size), width = 4, flag = "0") )))
     setDT(white_list)
-    white_list <- merge(white_list, connections)
+    white_list <- merge(white_list, connections, by = "time")
 
 
     max_index <- 19 # TODO: Or 20?
@@ -412,7 +412,7 @@ peer.selection.test <- function(
       col.names = c("new.connection", "time",
         paste0("peer.", formatC(seq_len(gray_list.max.size), width = 4, flag = "0") )))
     setDT(gray_list)
-    gray_list <- merge(gray_list, connections)
+    gray_list <- merge(gray_list, connections, by = "time")
 
     simulated.probability <- future.apply::future_apply(gray_list, 1, FUN = function(x) {
 
@@ -442,8 +442,9 @@ peer.selection.test <- function(
     simulated.probability <- simulated.probability[, .(probability = sum(probability)), by = "host"]
     simulated.probability[, probability := probability / sum(probability)]
 
-    new.connections <- unique(
-      convert.to.subnet(gray_list$new.connection, deduplicated.subnet.level))
+    # new.connections <- unique(
+    #   convert.to.subnet(gray_list$new.connection, deduplicated.subnet.level))
+    new.connections <- gray_list$new.connection
     rm(gray_list)
     new.connections <- new.connections[new.connections %in% simulated.probability$host]
 
