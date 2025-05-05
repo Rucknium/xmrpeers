@@ -7,6 +7,8 @@
 <url><loc>/reference/get.p2p.log.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/newborn.nodes.html</loc></url>
+<url><loc>/reference/peer.selection.collect.html</loc></url>
+<url><loc>/reference/peer.selection.test.html</loc></url>
 <url><loc>/reference/peers.ip.collect.html</loc></url>
 <url><loc>/reference/ping.peers.html</loc></url>
 <url><loc>/reference/txpool.collect.html</loc></url>
