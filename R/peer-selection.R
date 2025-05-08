@@ -45,6 +45,8 @@ peer.selection.collect <- function(
 
   stopifnot(length(verbose) == 1 && verbose %in% 0:2)
 
+  handle <- RCurl::getCurlHandle()
+
   json.post.get_peer_list <- RJSONIO::toJSON(
     list(
       jsonrpc = "2.0",
@@ -61,7 +63,8 @@ peer.selection.collect <- function(
           userpwd = "",
           postfields = json.post.get_peer_list,
           httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
-        )
+        ),
+        curl = handle
       ), asText = TRUE
     )
   }
@@ -83,7 +86,8 @@ peer.selection.collect <- function(
           userpwd = "",
           postfields = json.post.get_connections,
           httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
-        )
+        ),
+        curl = handle
       ), asText = TRUE
     )
   }

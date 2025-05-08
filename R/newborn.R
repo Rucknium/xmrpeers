@@ -66,6 +66,8 @@ newborn.nodes <- function(unrestricted.rpc.url = "http://127.0.0.1:18081",
 
   cat(paste0(format(session.start.time, "%Y-%m-%d %T"), " Start polling monerod for newborn nodes...\n"))
 
+  handle <- RCurl::getCurlHandle()
+
   while (TRUE) {
 
     peers <- RJSONIO::fromJSON(
@@ -74,7 +76,8 @@ newborn.nodes <- function(unrestricted.rpc.url = "http://127.0.0.1:18081",
           userpwd = "",
           postfields = json.post,
           httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
-        )
+        ),
+        curl = handle
       ), asText = TRUE
     )
 

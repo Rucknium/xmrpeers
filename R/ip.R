@@ -93,6 +93,8 @@ peers.ip.collect <- function(csv.file = "xmr-peers-ip.csv",
 
   # peer.malicious.ips.data <- matrix(NA_real_, ncol = 24, nrow = 0)
 
+  handle <- RCurl::getCurlHandle()
+
   while (TRUE) {
 
     RPC.time <- as.numeric(Sys.time())
@@ -103,7 +105,8 @@ peers.ip.collect <- function(csv.file = "xmr-peers-ip.csv",
           userpwd = "",
           postfields = json.post,
           httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
-        )
+        ),
+        curl = handle
       ), asText = TRUE
     )
 

@@ -112,6 +112,7 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
     num.as.string = TRUE,
     nonce.as.string = FALSE,
     keep.trying.rpc = FALSE,
+    curl = RCurl::getCurlHandle(),
     ...
   ){
 
@@ -130,7 +131,8 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
         postfields = json.ret,
         httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
         # https://stackoverflow.com/questions/19267261/timeout-while-reading-csv-file-from-url-in-r
-      )
+      ),
+      curl = curl
     ), error = function(e) {NULL})
 
     if (keep.trying.rpc && length(rcp.ret) == 0) {
@@ -141,7 +143,8 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
             postfields = json.ret,
             httpheader = c('Content-Type' = 'application/json', Accept = 'application/json')
             # https://stackoverflow.com/questions/19267261/timeout-while-reading-csv-file-from-url-in-r
-          )
+          ),
+          curl = curl
         ), error = function(e) {NULL})
       }
     }
@@ -165,9 +168,12 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
 
   message("Checking that Monero node has acceptable configuration. Please wait for confirmation...")
 
+  handle <- RCurl::getCurlHandle()
+
   # Check that node is responding
   while(length(tx.pool) == 0) {
-    tx.pool <- xmr.rpc(paste0(unrestricted.rpc.url, "/get_transaction_pool"), num.as.string = FALSE)$transactions
+    tx.pool <- xmr.rpc(paste0(unrestricted.rpc.url, "/get_transaction_pool"),
+      num.as.string = FALSE, curl = handle)$transactions
 
     if (length(tx.pool) > 0 && tx.pool[[1]]$receive_time == 0) {
       stop("Transaction receive_time is missing. Possible solution: remove '--restricted-rpc' monerod flag.")
@@ -190,13 +196,17 @@ txpool.collect <- function(db.file = "xmr-txpool-archive.db",
     message(paste0("txpool data collection stopped at ", base::date()))
   })
 
+  handle <- RCurl::getCurlHandle()
+
   while (TRUE) {
 
     compute.time <- system.time({
 
-      tx.pool <- xmr.rpc(paste0(unrestricted.rpc.url, "/get_transaction_pool"), num.as.string = FALSE, keep.trying.rpc = TRUE)$transactions
+      tx.pool <- xmr.rpc(paste0(unrestricted.rpc.url, "/get_transaction_pool"),
+        num.as.string = FALSE, keep.trying.rpc = TRUE, curl = handle)$transactions
 
-      block.header <- xmr.rpc(paste0(unrestricted.rpc.url, "/json_rpc"), method = "get_last_block_header", num.as.string = FALSE)$result$block_header
+      block.header <- xmr.rpc(paste0(unrestricted.rpc.url, "/json_rpc"),
+        method = "get_last_block_header", num.as.string = FALSE, curl = handle)$result$block_header
 
       block_receive_time <- round(Sys.time())
       # One-second time resolution
