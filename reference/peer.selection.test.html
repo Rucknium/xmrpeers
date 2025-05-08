@@ -82,6 +82,14 @@ size, compared to other tests,  when there are many zeros in observed counts
 and the reference distribution is non-uniform.</p></dd>
 
 
+<dt id="arg-only-first-draw-in-batch">only.first.draw.in.batch<a class="anchor" aria-label="anchor" href="#arg-only-first-draw-in-batch"></a></dt>
+<dd><p>The Monero node will often make
+multiple draws of candidate connections in a short period because the
+first draw(s) fail to connect. The draws in these "batches" are done
+without replacement, but the statistical test assumes that draws are done
+with replacement. This argument is TRUE by default.</p></dd>
+
+
 <dt id="arg-white-list-monte-carlo-iters">white_list.monte.carlo.iters<a class="anchor" aria-label="anchor" href="#arg-white-list-monte-carlo-iters"></a></dt>
 <dd><p>Number of iterations for simulating
 the reference probability distribution that draws from the <code>white_list</code>
@@ -99,14 +107,6 @@ set in the <code>monerod</code> code.</p></dd>
 <dd><p>Maximum size of the node's peer <code>gray_list</code>.
 This should not be changed under normal circumstances because it is
 set in the <code>monerod</code> code.</p></dd>
-
-
-<dt id="arg-only-first-selection-in-batch">only.first.selection.in.batch<a class="anchor" aria-label="anchor" href="#arg-only-first-selection-in-batch"></a></dt>
-<dd><p>The Monero node will often make
-multiple draws of candidate connections in a short period because the
-first draw(s) fail to connect. The draws in these "batches" are done
-without replacement, but the statistical test assumes that draws are done
-with replacement. This argument is TRUE by default.</p></dd>
 
 </dl></div>
     <div class="section level2">
