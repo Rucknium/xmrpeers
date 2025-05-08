@@ -263,7 +263,7 @@ peer.selection.collect <- function(
 #' package. The `rms_gof()` test appears to have size closer to the correct
 #' size, compared to other tests,  when there are many zeros in observed counts
 #' and the reference distribution is non-uniform.
-#' @param only.first.selection.in.batch The Monero node will often make
+#' @param only.first.draw.in.batch The Monero node will often make
 #' multiple draws of candidate connections in a short period because the
 #' first draw(s) fail to connect. The draws in these "batches" are done
 #' without replacement, but the statistical test assumes that draws are done

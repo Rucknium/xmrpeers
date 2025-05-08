@@ -37,6 +37,12 @@ package. The \code{rms_gof()} test appears to have size closer to the correct
 size, compared to other tests,  when there are many zeros in observed counts
 and the reference distribution is non-uniform.}
 
+\item{only.first.draw.in.batch}{The Monero node will often make
+multiple draws of candidate connections in a short period because the
+first draw(s) fail to connect. The draws in these "batches" are done
+without replacement, but the statistical test assumes that draws are done
+with replacement. This argument is TRUE by default.}
+
 \item{white_list.monte.carlo.iters}{Number of iterations for simulating
 the reference probability distribution that draws from the \code{white_list}
 should have. If the process is unacceptably slow, this number can be
@@ -49,12 +55,6 @@ set in the \code{monerod} code.}
 \item{gray_list.max.size}{Maximum size of the node's peer \code{gray_list}.
 This should not be changed under normal circumstances because it is
 set in the \code{monerod} code.}
-
-\item{only.first.selection.in.batch}{The Monero node will often make
-multiple draws of candidate connections in a short period because the
-first draw(s) fail to connect. The draws in these "batches" are done
-without replacement, but the statistical test assumes that draws are done
-with replacement. This argument is TRUE by default.}
 }
 \value{
 A list. One element for each of the \code{do.list} specified. Each of the
