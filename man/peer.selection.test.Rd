@@ -9,6 +9,7 @@ peer.selection.test(
   do.list = c("white_list", "gray_list"),
   csv.file.suffix = "peer-selection.csv",
   stat.tests = list(rms_gof = rms_gof),
+  only.first.draw.in.batch = TRUE,
   white_list.monte.carlo.iters = 10000,
   white_list.max.size = 1000,
   gray_list.max.size = 5000
@@ -48,6 +49,12 @@ set in the \code{monerod} code.}
 \item{gray_list.max.size}{Maximum size of the node's peer \code{gray_list}.
 This should not be changed under normal circumstances because it is
 set in the \code{monerod} code.}
+
+\item{only.first.selection.in.batch}{The Monero node will often make
+multiple draws of candidate connections in a short period because the
+first draw(s) fail to connect. The draws in these "batches" are done
+without replacement, but the statistical test assumes that draws are done
+with replacement. This argument is TRUE by default.}
 }
 \value{
 A list. One element for each of the \code{do.list} specified. Each of the

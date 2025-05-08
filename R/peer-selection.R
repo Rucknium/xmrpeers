@@ -213,7 +213,7 @@ peer.selection.collect <- function(
 
       if (verbose >= 1) {
         message("Total number of draws from white_list: ", total.draws.from.white_list)
-        message("Total number of draws from gray_list: ", total.draws.from.white_list)
+        message("Total number of draws from gray_list: ", total.draws.from.gray_list)
       }
 
       write.table(matrix(c(RPC.time, current.connections), nrow = 1),
@@ -263,6 +263,11 @@ peer.selection.collect <- function(
 #' package. The `rms_gof()` test appears to have size closer to the correct
 #' size, compared to other tests,  when there are many zeros in observed counts
 #' and the reference distribution is non-uniform.
+#' @param only.first.selection.in.batch The Monero node will often make
+#' multiple draws of candidate connections in a short period because the
+#' first draw(s) fail to connect. The draws in these "batches" are done
+#' without replacement, but the statistical test assumes that draws are done
+#' with replacement. This argument is TRUE by default.
 #' @param white_list.monte.carlo.iters Number of iterations for simulating
 #' the reference probability distribution that draws from the `white_list`
 #' should have. If the process is unacceptably slow, this number can be
@@ -295,6 +300,7 @@ peer.selection.test <- function(
   do.list = c("white_list", "gray_list"),
   csv.file.suffix = "peer-selection.csv",
   stat.tests = list(rms_gof = rms_gof),
+  only.first.draw.in.batch = TRUE,
   white_list.monte.carlo.iters = 10000,
   white_list.max.size = 1000,
   gray_list.max.size = 5000) {
@@ -318,12 +324,33 @@ peer.selection.test <- function(
   # Remove columns with all missings
   setDT(connections)
 
+  if ("gray_list" %in% do.list) {
+    # Do this now so there would not be much time between reading of all data files.
+    # simulated.probability for white_list takes a long time to run.
+    gray_list <- read.csv(gray_list.csv.file, header = FALSE,
+      col.names = c("new.connection", "time",
+        paste0("peer.", formatC(seq_len(gray_list.max.size), width = 4, flag = "0") )))
+    setDT(gray_list)
+
+    if (only.first.draw.in.batch) {
+      gray_list <- unique(gray_list, by = "time")
+    }
+
+    gray_list <- merge(gray_list, connections, by = "time")
+
+  }
+
   if ("white_list" %in% do.list) {
 
     white_list <- read.csv(white_list.csv.file, header = FALSE,
       col.names = c("new.connection", "time",
         paste0("peer.", formatC(seq_len(white_list.max.size), width = 4, flag = "0") )))
     setDT(white_list)
+
+    if (only.first.draw.in.batch) {
+      white_list <- unique(white_list, by = "time")
+    }
+
     white_list <- merge(white_list, connections, by = "time")
 
 
@@ -411,12 +438,6 @@ peer.selection.test <- function(
 
 
   if ("gray_list" %in% do.list) {
-
-    gray_list <- read.csv(gray_list.csv.file, header = FALSE,
-      col.names = c("new.connection", "time",
-        paste0("peer.", formatC(seq_len(gray_list.max.size), width = 4, flag = "0") )))
-    setDT(gray_list)
-    gray_list <- merge(gray_list, connections, by = "time")
 
     simulated.probability <- future.apply::future_apply(gray_list, 1, FUN = function(x) {
 
