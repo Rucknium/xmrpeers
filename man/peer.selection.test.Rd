@@ -9,6 +9,7 @@ peer.selection.test(
   do.list = c("white_list", "gray_list"),
   csv.file.suffix = "peer-selection.csv",
   stat.tests = list(rms_gof = rms_gof),
+  already.connected.exclusion.subnet.level = 24,
   only.first.draw.in.batch = TRUE,
   white_list.monte.carlo.iters = 10000,
   white_list.max.size = 1000,
@@ -36,6 +37,10 @@ is the root-mean-square goodness-of-fit test in the \code{discretefit}
 package. The \code{rms_gof()} test appears to have size closer to the correct
 size, compared to other tests,  when there are many zeros in observed counts
 and the reference distribution is non-uniform.}
+
+\item{already.connected.exclusion.subnet.level}{The subnet level that is
+used to exclude subnets that the node is already connected to. Set to
+24 by default.}
 
 \item{only.first.draw.in.batch}{The Monero node will often make
 multiple draws of candidate connections in a short period because the

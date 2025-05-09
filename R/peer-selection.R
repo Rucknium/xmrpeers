@@ -107,7 +107,7 @@ peer.selection.collect <- function(
 
   on.exit({
     message("Total number of draws from white_list: ", total.draws.from.white_list)
-    message("Total number of draws from gray_list: ", total.draws.from.white_list)
+    message("Total number of draws from gray_list: ", total.draws.from.gray_list)
     close(fifo.file.connection)
   })
 
@@ -117,7 +117,7 @@ peer.selection.collect <- function(
 
   # Flush the FIFO file so we have fresh data
   message("Flushing FIFO file", appendLF = FALSE)
-  flushed.lines <- 1
+  flushed.lines <- paste0(readLines(fifo.file.connection), 1)
   while (length(flushed.lines) > 0) {
     flushed.lines <- readLines(fifo.file.connection)
     Sys.sleep(1)
@@ -263,6 +263,9 @@ peer.selection.collect <- function(
 #' package. The `rms_gof()` test appears to have size closer to the correct
 #' size, compared to other tests,  when there are many zeros in observed counts
 #' and the reference distribution is non-uniform.
+#' @param already.connected.exclusion.subnet.level The subnet level that is
+#' used to exclude subnets that the node is already connected to. Set to
+#' 24 by default.
 #' @param only.first.draw.in.batch The Monero node will often make
 #' multiple draws of candidate connections in a short period because the
 #' first draw(s) fail to connect. The draws in these "batches" are done
@@ -300,6 +303,7 @@ peer.selection.test <- function(
   do.list = c("white_list", "gray_list"),
   csv.file.suffix = "peer-selection.csv",
   stat.tests = list(rms_gof = rms_gof),
+  already.connected.exclusion.subnet.level = 24,
   only.first.draw.in.batch = TRUE,
   white_list.monte.carlo.iters = 10000,
   white_list.max.size = 1000,
@@ -374,8 +378,9 @@ peer.selection.test <- function(
       connections <- na.omit(x[grepl("connection", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
-      peers[, subnet.16 := convert.to.subnet(host, 16)]
-      peers <- peers[! subnet.16 %chin% convert.to.subnet(connections, 16), ]
+      peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
+      peers <- peers[! subnet.AC %chin%
+          convert.to.subnet(connections, already.connected.exclusion.subnet.level), ]
       # Remove peers in subnets that the node is already connected to
       peers[, subnet.deduplicated := convert.to.subnet(host, deduplicated.subnet.level)]
       peers[, orig.order := seq_len(.N)]
@@ -452,8 +457,9 @@ peer.selection.test <- function(
       connections <- na.omit(x[grepl("connection", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
-      peers[, subnet.16 := convert.to.subnet(host, 16)]
-      peers <- peers[! subnet.16 %chin% convert.to.subnet(connections, 16), ]
+      peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
+      peers <- peers[! subnet.AC %chin%
+          convert.to.subnet(connections, already.connected.exclusion.subnet.level), ]
       # Remove peers in subnets that the node is already connected to
       peers[, subnet.deduplicated := convert.to.subnet(host, deduplicated.subnet.level)]
       peers[, probability := 1/.N, by = "subnet.deduplicated"]
