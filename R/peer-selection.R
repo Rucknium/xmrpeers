@@ -387,6 +387,8 @@ peer.selection.test <- function(
 
       result <- replicate(white_list.monte.carlo.iters, {
         peers <- peers[sample(.N), ]
+        peers <- unique(peers, by = "host")
+        # Deduplicate ports
         peers <- unique(peers, by = "subnet.deduplicated")
         setorder(peers, orig.order)
         data.length <- min(length(parabolic.probability), nrow(peers))
@@ -461,6 +463,8 @@ peer.selection.test <- function(
       peers <- peers[! subnet.AC %chin%
           convert.to.subnet(connections, already.connected.exclusion.subnet.level), ]
       # Remove peers in subnets that the node is already connected to
+      peers <- unique(peers, by = "host")
+      # Deduplicate ports
       peers[, subnet.deduplicated := convert.to.subnet(host, deduplicated.subnet.level)]
       peers[, probability := 1/.N, by = "subnet.deduplicated"]
       result <- peers[, .(host = host, probability = probability)]
