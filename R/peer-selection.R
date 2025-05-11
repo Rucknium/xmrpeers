@@ -139,8 +139,8 @@ peer.selection.collect <- function(
 
     if (length(considering.connecting) > 0) {
 
-      draws.from.white_list <- grep("peer_list=1.*rand_count: 1", log.output)
-      draws.from.gray_list  <- grep("peer_list=2.*rand_count: 1", log.output)
+      draws.from.white_list <- grep("white list.*rand_count: 1", log.output)
+      draws.from.gray_list  <- grep("gray list.*rand_count: 1", log.output)
 
       total.draws.from.white_list <- total.draws.from.white_list + length(draws.from.white_list)
       total.draws.from.gray_list <- total.draws.from.gray_list + length(draws.from.gray_list)
