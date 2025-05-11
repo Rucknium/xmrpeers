@@ -375,7 +375,7 @@ peer.selection.test <- function(
       # address is used to represent IPv4 nodes as IPv6 addresses. It allows
       # IPv6 applications to communicate directly with IPv4 applications. For
       # example, 0:0:0:0:0:ffff:192.1.56.10 and ::ffff:192.1.56.10/96 (shortened format).
-      connections <- na.omit(x[grepl("connection", names(x))])
+      connections <- na.omit(x[grepl("^connection[.][0-9]+$", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
       peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
@@ -456,7 +456,7 @@ peer.selection.test <- function(
       # address is used to represent IPv4 nodes as IPv6 addresses. It allows
       # IPv6 applications to communicate directly with IPv4 applications. For
       # example, 0:0:0:0:0:ffff:192.1.56.10 and ::ffff:192.1.56.10/96 (shortened format).
-      connections <- na.omit(x[grepl("connection", names(x))])
+      connections <- na.omit(x[grepl("^connection[.][0-9]+$", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
       peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
