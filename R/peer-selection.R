@@ -135,12 +135,12 @@ peer.selection.collect <- function(
 
     log.output <- readLines(fifo.file.connection)
 
-    considering.connecting <- grep("Considering connecting", log.output)
+    considering.connecting <- grep("rand_count", log.output)
 
     if (length(considering.connecting) > 0) {
 
-      draws.from.white_list <- grep("white list peer", log.output)
-      draws.from.gray_list <- grep("gray list peer", log.output)
+      draws.from.white_list <- grep("peer_list=1.*rand_count: 1", log.output)
+      draws.from.gray_list  <- grep("peer_list=2.*rand_count: 1", log.output)
 
       total.draws.from.white_list <- total.draws.from.white_list + length(draws.from.white_list)
       total.draws.from.gray_list <- total.draws.from.gray_list + length(draws.from.gray_list)
@@ -205,7 +205,7 @@ peer.selection.collect <- function(
 
       current.connections <- get.connection.addresses(current.connections)
 
-      if (verbose == 2) {
+      if (FALSE && verbose == 2) {
         message(paste0(log.output[grep("Random connection index", log.output)], collapse = "\n"))
         message(paste0(log.output[considering.connecting], collapse = "\n"))
         message("Current connections: ", length(current.connections))
