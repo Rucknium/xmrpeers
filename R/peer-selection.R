@@ -135,12 +135,12 @@ peer.selection.collect <- function(
 
     log.output <- readLines(fifo.file.connection)
 
-    considering.connecting <- grep("rand_count", log.output)
+    considering.connecting <- grep(" needed., in loop pass", log.output)
 
     if (length(considering.connecting) > 0) {
 
-      draws.from.white_list <- grep("white list.*rand_count: 1", log.output)
-      draws.from.gray_list  <- grep("gray list.*rand_count: 1", log.output)
+      draws.from.white_list <- grep("white list.* needed., in loop pass 1", log.output)
+      draws.from.gray_list  <- grep("gray list.* needed., in loop pass 1", log.output)
 
       total.draws.from.white_list <- total.draws.from.white_list + length(draws.from.white_list)
       total.draws.from.gray_list <- total.draws.from.gray_list + length(draws.from.gray_list)
