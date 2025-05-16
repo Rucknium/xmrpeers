@@ -357,8 +357,17 @@ peer.selection.test <- function(
 
     white_list <- merge(white_list, connections, by = "time")
 
+    white_list[, already.connected := grepl(new.connection, apply(.SD, 1,
+      FUN = function(x) {paste(x, collapse = "  ")} )),
+      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(.N)]
 
-    max_index <- 19 # TODO: Or 20?
+    white_list <- white_list[ ! already.connected, ]
+    white_list[, already.connected := NULL]
+    # If RPC results say we are already connected to the new.connection,
+    # which could be caused by a race condition, then exclude the draw
+
+
+    max_index <- 19
     x <- 0:(16 * max_index)
     parabolic.probability <- c(unclass(prop.table(table(floor((x*x*x)/(max_index*max_index*16*16*16))))))
     # From get_random_index_with_fixed_probability() function:
@@ -445,6 +454,15 @@ peer.selection.test <- function(
 
 
   if ("gray_list" %in% do.list) {
+
+    gray_list[, already.connected := grepl(new.connection, apply(.SD, 1,
+      FUN = function(x) {paste(x, collapse = "  ")} )),
+      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(.N)]
+
+    gray_list <- white_list[ ! already.connected, ]
+    gray_list[, already.connected := NULL]
+    # If RPC results say we are already connected to the new.connection,
+    # which could be caused by a race condition, then exclude the draw
 
     simulated.probability <- future.apply::future_apply(gray_list, 1, FUN = function(x) {
 
