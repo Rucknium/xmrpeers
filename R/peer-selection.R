@@ -361,7 +361,7 @@ peer.selection.test <- function(
       FUN = function(x) {paste(x, collapse = "  ")} )),
       .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(nrow(white_list))]
 
-    white_list <- white_list[ ! already.connected, ]
+    white_list <- white_list[ already.connected == FALSE, ]
     white_list[, already.connected := NULL]
     # If RPC results say we are already connected to the new.connection,
     # which could be caused by a race condition, then exclude the draw
@@ -463,7 +463,7 @@ peer.selection.test <- function(
       FUN = function(x) {paste(x, collapse = "  ")} )),
       .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(nrow(gray_list))]
 
-    gray_list <- white_list[ ! already.connected, ]
+    gray_list <- gray_list[ already.connected == FALSE, ]
     gray_list[, already.connected := NULL]
     # If RPC results say we are already connected to the new.connection,
     # which could be caused by a race condition, then exclude the draw
