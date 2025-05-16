@@ -359,7 +359,7 @@ peer.selection.test <- function(
 
     white_list[, already.connected := grepl(new.connection, apply(.SD, 1,
       FUN = function(x) {paste(x, collapse = "  ")} )),
-      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(.N)]
+      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(nrow(white_list))]
 
     white_list <- white_list[ ! already.connected, ]
     white_list[, already.connected := NULL]
@@ -461,7 +461,7 @@ peer.selection.test <- function(
 
     gray_list[, already.connected := grepl(new.connection, apply(.SD, 1,
       FUN = function(x) {paste(x, collapse = "  ")} )),
-      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(.N)]
+      .SDcols = patterns("^connection[.][0-9]+$"), by = seq_len(nrow(gray_list))]
 
     gray_list <- white_list[ ! already.connected, ]
     gray_list[, already.connected := NULL]
