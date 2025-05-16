@@ -373,6 +373,10 @@ peer.selection.test <- function(
     # From get_random_index_with_fixed_probability() function:
     # https://github.com/monero-project/monero/blob/master/src/p2p/net_node.inl#L1302-L1312
 
+    message(
+      "Hypothesis test on white_list. Null hypothesis: Node behavior fits subnet deduplication specification\n",
+      "Number of observations: ", nrow(white_list), "\n",
+      "-----------------------------------------------------------------------------------------------------")
 
     simulated.probability <- future.apply::future_apply(white_list, 1, FUN = function(x) {
 
@@ -463,6 +467,11 @@ peer.selection.test <- function(
     gray_list[, already.connected := NULL]
     # If RPC results say we are already connected to the new.connection,
     # which could be caused by a race condition, then exclude the draw
+
+    message(
+      "Hypothesis test on gray_list. Null hypothesis: Node behavior fits subnet deduplication specification\n",
+      "Number of observations: ", nrow(gray_list), "\n",
+      "-----------------------------------------------------------------------------------------------------")
 
     simulated.probability <- future.apply::future_apply(gray_list, 1, FUN = function(x) {
 
