@@ -30,7 +30,8 @@ Imports:
   RJSONIO,
   RSQLite,
   DBI,
-  discretefit
+  discretefit,
+  igraph
 Suggests:
   archive,
   testthat (>= 3.0.0),
@@ -39,3 +40,5 @@ Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 URL: https://rucknium.github.io/xmrpeers/
+Depends: 
+    R (>= 2.10)

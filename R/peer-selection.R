@@ -547,5 +547,263 @@ peer.selection.test <- function(
 
 
 
+#' Generate a simulated Monero network
+#'
+#' @description Generates a simulated Monero network based on user-provided
+#' IP addresses of reachable nodes. The assumed number of unreachable nodes
+#' can be provided. A list of malicious node IP addresses can specify nodes
+#' that do not establish outbound connections. The user can specify whether
+#' the peer selection algorithm should perform subnet deduplication, and
+#' at what subnet mask level. Network summary statistics are optionally
+#' computed.
+#'
+#' @param outbound.ips A character vector of IP addresses that host reachable
+#' Monero nodes. Required.
+#' @param malicious.ips Optional character vector of IP addresses that are suspected
+#' to be malicious. Can contain IP address ranges with subnet notation.
+#' @param n.unreachable Number of unreachable nodes assumed to be in the
+#' network.
+#' @param already.connected.subnet.level The subnet mask level of the
+#' "already-connected-subnet" disqualifying condition. Set to 32 to disable
+#' this disqualifying condition.
+#' @param deduplication.subnet.level The subnet mask level at which to perform
+#' subnet deduplication.
+#' @param do.deduplication If TRUE, perform subnet deduplication. If FALSE,
+#' do not.
+#' @param default.outbound.connections The number of outbound connections
+#' of each node.
+#' @param dropped.connection.churns After `default.outbound.connections`
+#' has been reached, the number of times to drop one connection and add
+#' another one. The "already-connected-subnet" behavior makes some peer
+#' churning necessary to get the correct probability distribution.
+#' @param compute.network.stats If TRUE, compute network summary statistics
+#' of the simulated network.
+#'
+#' @return
+#' A list with three elements:
+#' \describe{
+#'   \item{nodes}{A `data.table` with seven columns: `index`, an index of the
+#'   node. `ip`, the IP address of the node, if it is reachable (NA if it
+#'   is not). `already.connected.subnet`, the subnet that the node belongs to,
+#'   based on the `already.connected.subnet.level` argument specified by the
+#'   user. `deduplication.subnet`, the subnet that the node belongs to,
+#'   based on the `deduplication.subnet.level` argument specified by the user.
+#'   `reachable`, TRUE if reachable and FALSE if not. `malicious`, TRUE if
+#'   node is on the `malicious.ips` list supplied by the user. `n.inbound`,
+#'   number of inbound connections of the node in the simulated network.}
+#'   \item{edgelist}{A `data.table`. The network edge list of the directed
+#'   graph. The `origin` column is the node establishing the connection.
+#'   The `destination` column is the node accepting the connection. The
+#'   `index` column of the `nodes` `data.table` is used as the identifier.}
+#'   \item{network.stats}{A list of four network summary statistics, computed
+#'   by the `igraph` package: `centr_betw`, `centr_clo`, `centr_degree`,
+#'   and `centr_eigen`. See their documentation in the `igraph` package
+#'   for interpretation.}
+#' }
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' data(good_peers)
+#'
+#' good_peers <- stringr::str_extract(good_peers,
+#'   "[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}")
+#' good_peers <- unique(good_peers)
+#' good_peers <- na.omit(good_peers)
+#' # Clean IP addresses
+#'
+#' suspected.malicious.ips <- readLines(
+#'   "https://raw.githubusercontent.com/Boog900/monero-ban-list/refs/heads/main/ban_list.txt")
+#'
+#' future::plan(future::multisession,
+#'   workers = max(c(1, floor(parallelly::availableCores()/6))))
+#' # Multi-threaded is recommended
+#'
+#' share.reachable <- 0.2
+#' # Set share of nodes that are reachable to 20 percent
+#'
+#' n.assumed.unreachable <- floor(length(good_peers) *
+#'     ((1 - share.reachable) / share.reachable))
+#'
+#' set.seed(314)
+#' # This is a random simulation
+#'
+#' generated.network <- gen.network(outbound.ips = good_peers,
+#'   malicious.ips = ban_list,
+#'   n.unreachable = n.assumed.unreachable)
+#'
+#' hist(generated.network$nodes[
+#'   reachable == TRUE & malicious == FALSE, n.inbound], breaks = 50)
+#'
+#' # Network stats
+#' sapply(names(generated.network$network.stats), function(x) {
+#'   generated.network$network.stats[[x]]$centralization
+#' })
+#' }
+gen.network <- function(
+  outbound.ips,
+  malicious.ips = NULL,
+  n.unreachable = 0,
+  already.connected.subnet.level = 16,
+  deduplication.subnet.level = 24,
+  do.deduplication = TRUE,
+  default.outbound.connections = 12,
+  dropped.connection.churns = 12,
+  compute.network.stats = TRUE) {
+
+  if (any(duplicated(outbound.ips))) {
+    stop("Duplicate IP addresses present in outbound.ips")
+  }
+
+  if (any(duplicated(malicious.ips))) {
+    stop("Duplicate IP addresses present in malicious.ips")
+  }
+
+
+  malicious.ips.singletons <- malicious.ips[! grepl("/", malicious.ips)]
+  malicious.ips.ranges <- malicious.ips[grepl("/", malicious.ips)]
+
+  malicious.ips <- intersect(outbound.ips, malicious.ips.singletons)
+
+  if (length(malicious.ips.ranges) > 0) {
+    message("Checking which IP addresses are in malicious.ips subnet ranges...")
+  }
+
+  for (i in malicious.ips.ranges) {
+    for (j in seq_along(outbound.ips)) {
+      if ( ! is.na(IP::ip.match(IP::ipv4(outbound.ips[j]), IP::ipv4r( i )))) {
+        malicious.ips <- c(malicious.ips, outbound.ips[j])
+      }
+    }
+  }
+
+
+  simulated.nodes <- data.table(ip = outbound.ips,
+    already.connected.subnet =
+      paste0(convert.to.subnet(outbound.ips, already.connected.subnet.level),
+        "/", already.connected.subnet.level),
+    deduplication.subnet =
+      paste0(convert.to.subnet(outbound.ips, deduplication.subnet.level),
+        "/", deduplication.subnet.level),
+    reachable = TRUE)
+
+
+  simulated.nodes <- rbind(simulated.nodes,
+    data.table(
+      ip = rep(NA, n.unreachable),
+      already.connected.subnet = rep(NA, n.unreachable),
+      deduplication.subnet = rep(NA, n.unreachable),
+      reachable = rep(FALSE, n.unreachable))
+    # Explicitly rep() means that when n.unreachable = 0, an empty
+    # table is produced
+  )
+
+  simulated.nodes[, malicious := ip %in% malicious.ips]
+
+  simulated.nodes[, index := seq_len(.N)]
+
+  simulated.nodes.reachable <- simulated.nodes[reachable == TRUE, ]
+  non.malicious.indices <- simulated.nodes[malicious == FALSE, index]
+  # The malicious IPs do not establish outbound connections
+
+  message("Simulating node connection algorithm...")
+
+  simulated.nodes.connections <- future.apply::future_lapply(non.malicious.indices, FUN = function(i) {
+
+    result <- integer(default.outbound.connections)
+
+    choose.peer <- function(result) {
+      possible.connections <- simulated.nodes.reachable[
+        ! already.connected.subnet %in% already.connected.subnet[result],
+      ]
+      # This ^ will also prevent connecting to a specific IP address that we
+      # are already connected to, so there are no duplicate connections.
+      if (do.deduplication) {
+        possible.connections <- possible.connections[sample(.N), ]
+        possible.connections <- unique(possible.connections, by = "deduplication.subnet")
+      }
+      sample(possible.connections$index, 1)
+    }
+
+    for (j in seq_len(default.outbound.connections)) {
+      result[j] <- choose.peer(result)
+    }
+
+    for (churn.iter in seq_len(dropped.connection.churns)) {
+      dropped.connection  <- sample(default.outbound.connections, 1)
+      result[dropped.connection] <- NA
+      result[dropped.connection] <- choose.peer(result)
+
+    }
+
+    if (i %% 100 == 0 || i %in% c(1, max(non.malicious.indices))) {
+      # Sometimes this doesn't hit because i is a malicious node
+      message("\r", "Choosing connections for node ", i, "/", max(non.malicious.indices), "", appendLF = FALSE)
+    }
+
+    result
+  }, future.seed = TRUE,
+    future.chunk.size = floor(nrow(simulated.nodes)/(10 * future::nbrOfWorkers())),
+    future.packages = "data.table",
+    future.globals = c("simulated.nodes.reachable", "dropped.connection.churns",
+      "default.outbound.connections", "malicious.ips", "do.deduplication",
+      "non.malicious.indices"))
+
+
+  origin.indices <- lengths(simulated.nodes.connections)
+
+  simulated.nodes.edgelist <- data.table(
+    origin = rep(non.malicious.indices, origin.indices),
+    destination = unlist(simulated.nodes.connections)
+  )
+
+
+  simulated.nodes.connection.count <- as.data.table(table(simulated.nodes.edgelist$destination))
+
+  setnames(simulated.nodes.connection.count, c("index", "n.inbound"))
+  simulated.nodes.connection.count[, index := as.integer(index)]
+
+  simulated.nodes <- merge(simulated.nodes,
+    simulated.nodes.connection.count,
+    all.x = TRUE)
+
+  simulated.nodes[is.na(n.inbound), n.inbound := 0]
+
+  result <- list(nodes = simulated.nodes, edgelist = simulated.nodes.edgelist)
+
+
+  if (compute.network.stats) {
+
+    message("\nComputing network stats...")
+
+    network.stats <- list()
+
+    simulated.nodes.igraph <- igraph::graph_from_edgelist(as.matrix(simulated.nodes.edgelist), directed = TRUE)
+    network.stats$centr_betw <- igraph::centr_betw(simulated.nodes.igraph, directed = FALSE)
+    network.stats$centr_clo <- igraph::centr_clo(simulated.nodes.igraph, mode = "all")
+
+    if (any(! is.finite(network.stats$centr_clo$res))) {
+      # Sometimes there are NaNs in the individual "res" node stats
+      network.stats$centr_clo$centralization <- igraph::centralize(na.omit(network.stats$centr_clo$res),
+        theoretical.max = network.stats$centr_clo$theoretical_max)
+    }
+
+    network.stats$centr_degree <- igraph::centr_degree(simulated.nodes.igraph, mode = "all")
+    network.stats$centr_eigen <- igraph::centr_eigen(simulated.nodes.igraph, directed = FALSE)
+
+    result$network.stats <- network.stats
+
+  }
+
+  result
+
+}
+
+
+
+
+
+
+
 
 
