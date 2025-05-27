@@ -105,7 +105,7 @@ set.seed(314)
 # This is a random simulation
 
 generated.network <- gen.network(outbound.ips = good_peers,
-  malicious.ips = ban_list,
+  malicious.ips = suspected.malicious.ips,
   n.unreachable = n.assumed.unreachable)
 
 hist(generated.network$nodes[
