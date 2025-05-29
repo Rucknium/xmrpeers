@@ -131,7 +131,9 @@ user. <code>deduplication.subnet</code>, the subnet that the node belongs to,
 based on the <code>deduplication.subnet.level</code> argument specified by the user.
 <code>reachable</code>, TRUE if reachable and FALSE if not. <code>malicious</code>, TRUE if
 node is on the <code>malicious.ips</code> list supplied by the user. <code>n.inbound</code>,
-number of inbound connections of the node in the simulated network.</p></dd>
+number of inbound connections of the node in the simulated network.
+<code>n.malicious.outbound</code>, the number of outbound connections to nodes
+on the <code>malicious.ips</code> list.</p></dd>
 
 <dt>edgelist</dt>
 <dd><p>A <code>data.table</code>. The network edge list of the directed
