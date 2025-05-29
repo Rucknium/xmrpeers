@@ -58,7 +58,9 @@ user. \code{deduplication.subnet}, the subnet that the node belongs to,
 based on the \code{deduplication.subnet.level} argument specified by the user.
 \code{reachable}, TRUE if reachable and FALSE if not. \code{malicious}, TRUE if
 node is on the \code{malicious.ips} list supplied by the user. \code{n.inbound},
-number of inbound connections of the node in the simulated network.}
+number of inbound connections of the node in the simulated network.
+\code{n.malicious.outbound}, the number of outbound connections to nodes
+on the \code{malicious.ips} list.}
 \item{edgelist}{A \code{data.table}. The network edge list of the directed
 graph. The \code{origin} column is the node establishing the connection.
 The \code{destination} column is the node accepting the connection. The

@@ -590,7 +590,9 @@ peer.selection.test <- function(
 #'   based on the `deduplication.subnet.level` argument specified by the user.
 #'   `reachable`, TRUE if reachable and FALSE if not. `malicious`, TRUE if
 #'   node is on the `malicious.ips` list supplied by the user. `n.inbound`,
-#'   number of inbound connections of the node in the simulated network.}
+#'   number of inbound connections of the node in the simulated network.
+#'   `n.malicious.outbound`, the number of outbound connections to nodes
+#'   on the `malicious.ips` list.}
 #'   \item{edgelist}{A `data.table`. The network edge list of the directed
 #'   graph. The `origin` column is the node establishing the connection.
 #'   The `destination` column is the node accepting the connection. The
@@ -659,24 +661,7 @@ gen.network <- function(
     stop("Duplicate IP addresses present in malicious.ips")
   }
 
-
-  malicious.ips.singletons <- malicious.ips[! grepl("/", malicious.ips)]
-  malicious.ips.ranges <- malicious.ips[grepl("/", malicious.ips)]
-
-  malicious.ips <- intersect(outbound.ips, malicious.ips.singletons)
-
-  if (length(malicious.ips.ranges) > 0) {
-    message("Checking which IP addresses are in malicious.ips subnet ranges...")
-  }
-
-  for (i in malicious.ips.ranges) {
-    for (j in seq_along(outbound.ips)) {
-      if ( ! is.na(IP::ip.match(IP::ipv4(outbound.ips[j]), IP::ipv4r( i )))) {
-        malicious.ips <- c(malicious.ips, outbound.ips[j])
-      }
-    }
-  }
-
+  malicious.ips <- outbound.ips[in.malicious.ips(outbound.ips, malicious.ips)]
 
   simulated.nodes <- data.table(ip = outbound.ips,
     already.connected.subnet =
@@ -763,11 +748,27 @@ gen.network <- function(
   setnames(simulated.nodes.connection.count, c("index", "n.inbound"))
   simulated.nodes.connection.count[, index := as.integer(index)]
 
-  simulated.nodes <- merge(simulated.nodes,
-    simulated.nodes.connection.count,
+  simulated.nodes <- merge(simulated.nodes, simulated.nodes.connection.count,
     all.x = TRUE)
 
   simulated.nodes[is.na(n.inbound), n.inbound := 0]
+
+
+  simulated.nodes.edgelist[, malicious.connection :=
+      destination %in% simulated.nodes[malicious == TRUE, index] ]
+
+  malicious.connection.count <- simulated.nodes.edgelist[,
+    .(n.malicious.outbound = sum(malicious.connection)), by = "origin"]
+
+  simulated.nodes.edgelist[, malicious.connection := NULL]
+
+  setnames(malicious.connection.count, c("index", "n.malicious.outbound"))
+
+  simulated.nodes <- merge(simulated.nodes, malicious.connection.count,
+    all.x = TRUE)
+
+  simulated.nodes[is.na(n.malicious.outbound), n.malicious.outbound := 0]
+
 
   result <- list(nodes = simulated.nodes, edgelist = simulated.nodes.edgelist)
 
