@@ -1,16 +1,27 @@
 
 
-convert.to.subnet <- function(x, mask) {
-  suppressWarnings(x[is.na(IP::ip(x)@ipv4)] <- "127.0.0.0")
-  # Must handle case where x is ipv6.
-  # Will set to NA later
-  result <- intToBits(IP::ipv4(x)@ipv4)
-  result <- matrix(result, nrow = 32)
-  result[seq_len(32 - mask), ] <- raw(1)
-  result <- packBits(c(result), "integer")
-  result <- suppressWarnings(as.character(IP::ipv4(result)))
-  # Gets a warning about negative values because the actual value is an unsigned integer
-  result[result == "127.0.0.0"] <- NA
+#' Convert IPv4 address to its subnet
+#'
+#' @param x Character vector of IPv4 addresses.
+#' @param mask Integer between 0 and 32, inclusive. The subnet mask.
+#' @param suffix Logical. If TRUE, return value should have
+#' "/" + mask concatenated to the end of the string.
+#'
+#' @return
+#' Character vector.
+#' @export
+#'
+#' @examples
+#' as.subnet("192.168.1.1", 16)
+#'
+#' as.subnet("192.168.1.1", 24, suffix = TRUE)
+as.subnet <- function(x, mask, suffix = FALSE) {
+  stopifnot(mask %in% 0:32)
+  result <- as.character(IP::ipv4(x) & IP::ipv4.netmask(mask))
+  # Will get a warning about NAs being produced if all x are not IPv4
+  if (suffix) {
+    result <- paste0(result, "/", mask)
+  }
   result
 }
 
@@ -151,7 +162,7 @@ peers.ip.collect <- function(csv.file = "xmr-peers-ip.csv",
 
     peer.ip.data.unique <- na.omit(unique(c(peer.ip.data)))
 
-    peer.ip.data.unique.subnet <- convert.to.subnet(peer.ip.data.unique, top.subnet.mask)
+    peer.ip.data.unique.subnet <- as.subnet(peer.ip.data.unique, top.subnet.mask)
 
     if (length(peer.ip.data.unique.subnet) < n.top.subnets) { Sys.sleep(poll.time); next }
 

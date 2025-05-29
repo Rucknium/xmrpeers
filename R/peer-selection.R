@@ -391,11 +391,11 @@ peer.selection.test <- function(
       connections <- na.omit(x[grepl("^connection[.][0-9]+$", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
-      peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
+      peers[, subnet.AC := as.subnet(host, already.connected.exclusion.subnet.level)]
       peers <- peers[! subnet.AC %chin%
-          convert.to.subnet(connections, already.connected.exclusion.subnet.level), ]
+          as.subnet(connections, already.connected.exclusion.subnet.level), ]
       # Remove peers in subnets that the node is already connected to
-      peers[, subnet.deduplicated := convert.to.subnet(host, deduplicated.subnet.level)]
+      peers[, subnet.deduplicated := as.subnet(host, deduplicated.subnet.level)]
       peers[, orig.order := seq_len(.N)]
 
       result <- replicate(white_list.monte.carlo.iters, {
@@ -486,13 +486,13 @@ peer.selection.test <- function(
       connections <- na.omit(x[grepl("^connection[.][0-9]+$", names(x))])
       peers <- peers[ ! host %chin% connections, ]
       # Remove peers that node is already connected to
-      peers[, subnet.AC := convert.to.subnet(host, already.connected.exclusion.subnet.level)]
+      peers[, subnet.AC := as.subnet(host, already.connected.exclusion.subnet.level)]
       peers <- peers[! subnet.AC %chin%
-          convert.to.subnet(connections, already.connected.exclusion.subnet.level), ]
+          as.subnet(connections, already.connected.exclusion.subnet.level), ]
       # Remove peers in subnets that the node is already connected to
       peers <- unique(peers, by = "host")
       # Deduplicate ports
-      peers[, subnet.deduplicated := convert.to.subnet(host, deduplicated.subnet.level)]
+      peers[, subnet.deduplicated := as.subnet(host, deduplicated.subnet.level)]
       peers[, probability := 1/.N, by = "subnet.deduplicated"]
       result <- peers[, .(host = host, probability = probability)]
       result[, probability := probability / sum(probability)]
@@ -505,7 +505,7 @@ peer.selection.test <- function(
     simulated.probability[, probability := probability / sum(probability)]
 
     # new.connections <- unique(
-    #   convert.to.subnet(gray_list$new.connection, deduplicated.subnet.level))
+    #   as.subnet(gray_list$new.connection, deduplicated.subnet.level))
     new.connections <- gray_list$new.connection
     rm(gray_list)
     new.connections <- new.connections[new.connections %in% simulated.probability$host]
@@ -665,10 +665,10 @@ gen.network <- function(
 
   simulated.nodes <- data.table(ip = outbound.ips,
     already.connected.subnet =
-      paste0(convert.to.subnet(outbound.ips, already.connected.subnet.level),
+      paste0(as.subnet(outbound.ips, already.connected.subnet.level),
         "/", already.connected.subnet.level),
     deduplication.subnet =
-      paste0(convert.to.subnet(outbound.ips, deduplication.subnet.level),
+      paste0(as.subnet(outbound.ips, deduplication.subnet.level),
         "/", deduplication.subnet.level),
     reachable = TRUE)
 
