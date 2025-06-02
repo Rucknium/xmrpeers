@@ -21,7 +21,7 @@ infinite loop. ctrl + c to interrupt the function.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">xmrpeers</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -110,9 +110,8 @@ Monero node. Default is 30 seconds.</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">suspected.malicious.ips</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="st">"https://raw.githubusercontent.com/Boog900/monero-ban-list/refs/heads/main/ban_list.txt"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">peers.ip.collect</span><span class="op">(</span>malicious.ips <span class="op">=</span> <span class="va">suspected.malicious.ips</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ban_list</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">peers.ip.collect</span><span class="op">(</span>malicious.ips <span class="op">=</span> <span class="va">ban_list</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
