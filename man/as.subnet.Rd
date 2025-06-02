@@ -12,7 +12,8 @@ as.subnet(x, mask, suffix = FALSE)
 \item{mask}{Integer between 0 and 32, inclusive. The subnet mask.}
 
 \item{suffix}{Logical. If TRUE, return value should have
-"/" + mask concatenated to the end of the string.}
+"/" + mask concatenated to the end of the string. This produces
+Classless Inter-Domain Routing (CIDR) notation for the subnet.}
 }
 \value{
 Character vector.

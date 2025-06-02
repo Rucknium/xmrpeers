@@ -661,7 +661,7 @@ gen.network <- function(
     stop("Duplicate IP addresses present in malicious.ips")
   }
 
-  malicious.ips <- outbound.ips[in.malicious.ips(outbound.ips, malicious.ips)]
+  malicious.ips <- outbound.ips[in.ip.set(outbound.ips, malicious.ips)]
 
   simulated.nodes <- data.table(ip = outbound.ips,
     already.connected.subnet =

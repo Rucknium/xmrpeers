@@ -5,7 +5,8 @@
 #' @param x Character vector of IPv4 addresses.
 #' @param mask Integer between 0 and 32, inclusive. The subnet mask.
 #' @param suffix Logical. If TRUE, return value should have
-#' "/" + mask concatenated to the end of the string.
+#' "/" + mask concatenated to the end of the string. This produces
+#' Classless Inter-Domain Routing (CIDR) notation for the subnet.
 #'
 #' @return
 #' Character vector.
@@ -26,12 +27,33 @@ as.subnet <- function(x, mask, suffix = FALSE) {
 }
 
 
-in.malicious.ips <- function(x, malicious.ips) {
+
+#' Check for IP inclusion in set of IP singletons and ranges
+#'
+#' @param x Character vector of singleton IP addresses. Can contain
+#' duplicate elements.
+#' @param ip.set Character vector of IP address singletons and/or ranges.
+#' Ranges should be in Classless Inter-Domain Routing (CIDR) notation, e.g.
+#' "169.254.0.0/24". No duplicate elements allowed. Ranges should not overlap
+#' (see documentation in `IP::ip.match`).
+#'
+#' @return
+#' Logical vector , with length same as `x`.
+#' @export
+#'
+#' @examples
+#' in.ip.set(c("192.168.5.1", "192.168.4.1", "169.254.0.5"),
+#'   c("169.254.0.0/24", "192.168.1.1", "192.168.5.1"))
+#'
+in.ip.set <- function(x, ip.set) {
   # x can have duplicated elements
-  malicious.ips.singletons <- malicious.ips[ ! grepl("/", malicious.ips)]
-  malicious.ips.ranges <- malicious.ips[grepl("/", malicious.ips)]
-  result <- x %in% malicious.ips.singletons
-  result <- result | (! is.na(IP::ip.match(IP::ipv4(x), IP::ipv4r(malicious.ips.ranges))))
+  if (any(duplicated(ip.set))) {
+    stop("ip.set cannot have any duplicate elements.")
+  }
+  ip.set.singletons <- ip.set[ ! grepl("/", ip.set)]
+  ip.set.ranges <- ip.set[grepl("/", ip.set)]
+  result <- x %in% ip.set.singletons
+  result <- result | (! is.na(IP::ip.match(IP::ipv4(x), IP::ipv4r(ip.set.ranges))))
   result
 }
 
@@ -148,7 +170,7 @@ peers.ip.collect <- function(csv.file = "xmr-peers-ip.csv",
 
     if (length(malicious.ips) > 0) {
 
-      peer.address.malicious.ips <- as.numeric(in.malicious.ips(peer.address, malicious.ips))
+      peer.address.malicious.ips <- as.numeric(in.ip.set(peer.address, malicious.ips))
 
       # peer.malicious.ips.data <- rbind(peer.malicious.ips.data,
       #   matrix(c(peer.address.malicious.ips, rep(NA_real_, 24 - length(peer.address.malicious.ips))),
