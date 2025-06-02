@@ -90,8 +90,7 @@ good_peers <- unique(good_peers)
 good_peers <- na.omit(good_peers)
 # Clean IP addresses
 
-suspected.malicious.ips <- readLines(
-  "https://raw.githubusercontent.com/Boog900/monero-ban-list/refs/heads/main/ban_list.txt")
+data(ban_list)
 
 future::plan(future::multisession,
   workers = max(c(1, floor(parallelly::availableCores()/6))))
@@ -107,7 +106,7 @@ set.seed(314)
 # This is a random simulation
 
 generated.network <- gen.network(outbound.ips = good_peers,
-  malicious.ips = suspected.malicious.ips,
+  malicious.ips = ban_list,
   n.unreachable = n.assumed.unreachable)
 
 hist(generated.network$nodes[

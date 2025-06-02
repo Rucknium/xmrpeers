@@ -35,7 +35,7 @@ as.subnet <- function(x, mask, suffix = FALSE) {
 #' @param ip.set Character vector of IP address singletons and/or ranges.
 #' Ranges should be in Classless Inter-Domain Routing (CIDR) notation, e.g.
 #' "169.254.0.0/24". No duplicate elements allowed. Ranges should not overlap
-#' (see documentation in `IP::ip.match`).
+#' (see documentation in \link[IP]{ip.match}).
 #'
 #' @return
 #' Logical vector , with length same as `x`.
@@ -88,9 +88,8 @@ in.ip.set <- function(x, ip.set) {
 #'
 #' @examples
 #' \dontrun{
-#' suspected.malicious.ips <- readLines(
-#'   "https://raw.githubusercontent.com/Boog900/monero-ban-list/refs/heads/main/ban_list.txt")
-#' peers.ip.collect(malicious.ips = suspected.malicious.ips)
+#' data(ban_list)
+#' peers.ip.collect(malicious.ips = ban_list)
 #' }
 
 peers.ip.collect <- function(csv.file = "xmr-peers-ip.csv",
