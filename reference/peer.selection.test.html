@@ -43,6 +43,7 @@
 <span>  csv.file.suffix <span class="op">=</span> <span class="st">"peer-selection.csv"</span>,</span>
 <span>  stat.tests <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rms_gof <span class="op">=</span> <span class="va">rms_gof</span><span class="op">)</span>,</span>
 <span>  already.connected.exclusion.subnet.level <span class="op">=</span> <span class="fl">24</span>,</span>
+<span>  skip.warmup <span class="op">=</span> <span class="fl">10</span> <span class="op">*</span> <span class="fl">60</span>,</span>
 <span>  only.first.draw.in.batch <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  white_list.monte.carlo.iters <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  white_list.max.size <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -87,6 +88,13 @@ and the reference distribution is non-uniform.</p></dd>
 <dd><p>The subnet level that is
 used to exclude subnets that the node is already connected to. Set to
 24 by default.</p></dd>
+
+
+<dt id="arg-skip-warmup">skip.warmup<a class="anchor" aria-label="anchor" href="#arg-skip-warmup"></a></dt>
+<dd><p>Number of seconds to skip in the beginning of the
+dataset. When Monero nodes are frisrt booted, they have a period of
+establishing connectivity to the network when they may behave different
+from normal operation. If zero, no data is skipped.</p></dd>
 
 
 <dt id="arg-only-first-draw-in-batch">only.first.draw.in.batch<a class="anchor" aria-label="anchor" href="#arg-only-first-draw-in-batch"></a></dt>
