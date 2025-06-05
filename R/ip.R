@@ -18,7 +18,7 @@
 #' as.subnet("192.168.1.1", 24, suffix = TRUE)
 as.subnet <- function(x, mask, suffix = FALSE) {
   stopifnot(mask %in% 0:32)
-  result <- as.character(IP::ipv4(x) & IP::ipv4.netmask(mask))
+  suppressWarnings(result <- as.character(IP::ipv4(x) & IP::ipv4.netmask(mask)))
   # Will get a warning about NAs being produced if all x are not IPv4
   if (suffix) {
     result <- paste0(result, "/", mask)
