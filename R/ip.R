@@ -53,7 +53,9 @@ in.ip.set <- function(x, ip.set) {
   ip.set.singletons <- ip.set[ ! grepl("/", ip.set)]
   ip.set.ranges <- ip.set[grepl("/", ip.set)]
   result <- x %in% ip.set.singletons
-  result <- result | (! is.na(IP::ip.match(IP::ipv4(x), IP::ipv4r(ip.set.ranges))))
+  if (length(ip.set.ranges) > 0) {
+    result <- result | (! is.na(IP::ip.match(IP::ipv4(x), IP::ipv4r(ip.set.ranges))))
+  }
   result
 }
 
