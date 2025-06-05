@@ -266,6 +266,10 @@ peer.selection.collect <- function(
 #' @param already.connected.exclusion.subnet.level The subnet level that is
 #' used to exclude subnets that the node is already connected to. Set to
 #' 24 by default.
+#' @param skip.warmup Number of seconds to skip in the beginning of the
+#' dataset. When Monero nodes are frisrt booted, they have a period of
+#' establishing connectivity to the network when they may behave different
+#' from normal operation. If zero, no data is skipped.
 #' @param only.first.draw.in.batch The Monero node will often make
 #' multiple draws of candidate connections in a short period because the
 #' first draw(s) fail to connect. The draws in these "batches" are done
@@ -304,6 +308,7 @@ peer.selection.test <- function(
   csv.file.suffix = "peer-selection.csv",
   stat.tests = list(rms_gof = rms_gof),
   already.connected.exclusion.subnet.level = 24,
+  skip.warmup = 10 * 60,
   only.first.draw.in.batch = TRUE,
   white_list.monte.carlo.iters = 10000,
   white_list.max.size = 1000,
@@ -327,6 +332,11 @@ peer.selection.test <- function(
   connections <- connections[, apply(connections, 2, FUN = function(x) ! all(is.na(x)))]
   # Remove columns with all missings
   setDT(connections)
+
+  if (skip.warmup > 0) {
+    start.time <- connections[1, time]
+    connections <- connections[time >= (start.time + skip.warmup), ]
+  }
 
   if ("gray_list" %in% do.list) {
     # Do this now so there would not be much time between reading of all data files.
