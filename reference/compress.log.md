@@ -1,0 +1,51 @@
+# Extract and compress selected log lines
+
+With default arguments, this function accomplishes the same thing as
+this Linux shell call:
+
+    grep -I "net.p2p.msg" bitmonero.log* > extracted-xmr-log
+    for file in bitmonero.log*.tar.gz; do tar xf "$file" --to-command 'egrep -Ha --label="$TAR_FILENAME" "net.p2p.msg" || true' >> extracted-xmr-log; done
+    xz extracted-xmr-log
+
+## Usage
+
+``` r
+compress.log(
+  bitmonero.dir = c("~/.bitmonero", "C:\\ProgramData\\bitmonero"),
+  output.file = "extracted-xmr-log",
+  log.filter = "net.p2p.msg",
+  rm.uncompressed.file = TRUE
+)
+```
+
+## Arguments
+
+- bitmonero.dir:
+
+  Directory location of the log files
+
+- output.file:
+
+  Name of the file that will be created. ".tar.xz" will be appended to
+  this name
+
+- log.filter:
+
+  Regular expression that selects log lines.
+
+- rm.uncompressed.file:
+
+  Remove the uncompressed version of the extracted log file after
+  compression? Does not affect the original log files.
+
+## Value
+
+NULL (invisible)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+compress.log()
+} # }
+```
