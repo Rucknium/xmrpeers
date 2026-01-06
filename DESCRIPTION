@@ -1,8 +1,8 @@
 Package: xmrpeers
 Type: Package
 Title: Analysis of the Monero Cryptocurrency Peer-to-Peer Node Network
-Version: 0.2.4
-Date: 2025-06-02
+Version: 0.3.0
+Date: 2026-01-06
 Authors@R:
     c(person(family = "Rucknium",
              role = c("cre", "aut", "cph"),
