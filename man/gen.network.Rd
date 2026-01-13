@@ -90,7 +90,7 @@ good_peers <- unique(good_peers)
 good_peers <- na.omit(good_peers)
 # Clean IP addresses
 
-data(ban_list)
+data(ban_list_v2)
 
 future::plan(future::multisession,
   workers = max(c(1, floor(parallelly::availableCores()/6))))
@@ -106,7 +106,7 @@ set.seed(314)
 # This is a random simulation
 
 generated.network <- gen.network(outbound.ips = good_peers,
-  malicious.ips = ban_list,
+  malicious.ips = ban_list_v2,
   n.unreachable = n.assumed.unreachable)
 
 hist(generated.network$nodes[
