@@ -61,7 +61,7 @@ NULL (invisible)
 
 ``` r
 if (FALSE) { # \dontrun{
-data(ban_list)
-peers.ip.collect(malicious.ips = ban_list)
+data(ban_list_v2)
+peers.ip.collect(malicious.ips = ban_list_v2)
 } # }
 ```
