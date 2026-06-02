@@ -25,7 +25,7 @@ Imports:
   parallelly,
   future,
   future.apply,
-  qs,
+  qs2,
   RCurl,
   RJSONIO,
   RSQLite,
