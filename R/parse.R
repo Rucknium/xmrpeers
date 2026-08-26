@@ -173,7 +173,7 @@ get.p2p.log <- function(bitmonero.dir = "~/.bitmonero", output.file = NULL) {
 
   if (!is.null(output.file)) {
     cat(base::date(), " Writing data to ", output.file, " with highest compression settings...\n", sep = "")
-    qs2::qs_save(tx.data, output.file, preset = "custom", algorithm = "zstd_stream", compress_level = 22, shuffle_control = 15)
+    qs2::qs_save(tx.data, output.file, compress_level = 22)
   }
 
   tx.data
