@@ -17,6 +17,7 @@ You can install the development version of xmrpeers from
 your system with:
 
 ``` r
+
 install.packages("remotes")
 remotes::install_github("Rucknium/xmrpeers", upgrade = FALSE)
 ```

@@ -8,13 +8,13 @@
 ## Citation
 
 Rucknium (2026). *xmrpeers: Analysis of the Monero Cryptocurrency
-Peer-to-Peer Node Network*. R package version 0.3.0,
+Peer-to-Peer Node Network*. R package version 0.3.1,
 <https://rucknium.github.io/xmrpeers/>.
 
     @Manual{,
       title = {xmrpeers: Analysis of the Monero Cryptocurrency Peer-to-Peer Node Network},
       author = {{Rucknium}},
       year = {2026},
-      note = {R package version 0.3.0},
+      note = {R package version 0.3.1},
       url = {https://rucknium.github.io/xmrpeers/},
     }
